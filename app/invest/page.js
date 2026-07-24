@@ -12,7 +12,6 @@ import InvoiceFilters, {
   hasAnyActiveFilters,
   parseSortState,
 } from "@/components/InvoiceFilters";
-import Pagination from "@/components/Pagination";
 import NavMenu from "@/components/NavMenu";
 import { copy } from "../copy/en";
 // Mock data is sourced exclusively from lib.js (single source of truth until the API client lands).
@@ -49,9 +48,7 @@ export function getInvoiceLoadAnnouncement(invoices, { filterActive, filteredCou
 
 export function getPaginationAnnouncement(shown, total) {
   if (total === 0) return copy.invest.announceNoInvoices;
-  return copy.invest.announceShowing
-    .replace("{shown}", shown)
-    .replace("{total}", total);
+  return copy.invest.announceShowing.replace("{shown}", shown).replace("{total}", total);
 }
 
 /**
@@ -138,9 +135,9 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
    */
   const [retryKey, setRetryKey] = useState(0);
 
-  // Tracks the invoices reference paging was last reset for. Compared during
-  // render (rather than in an effect) per the React-recommended pattern for
-  // resetting state when a prop/value changes: https://react.dev/learn/you-might-not-need-an-effect
+  // Reset paging whenever the raw invoice data changes (new fetch, retry, etc.).
+  // Compared during render per the React-recommended pattern:
+  // https://react.dev/learn/you-might-not-need-an-effect
   const [pagingResetFor, setPagingResetFor] = useState(invoices);
   if (invoices !== pagingResetFor) {
     setPagingResetFor(invoices);
@@ -186,6 +183,17 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
     const t = setTimeout(() => setDebouncedSearch(searchQuery), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(t);
   }, [searchQuery]);
+
+  // Reset the visible page count to PAGE_SIZE whenever the filters or debounced
+  // search term change, using the React-sanctioned "adjust state during render"
+  // pattern so the user always starts at the top of the newly filtered list
+  // (avoids a setState-in-effect cascading render).
+  const filterSignature = JSON.stringify([debouncedSearch, filters]);
+  const [prevFilterSignature, setPrevFilterSignature] = useState(filterSignature);
+  if (filterSignature !== prevFilterSignature) {
+    setPrevFilterSignature(filterSignature);
+    setVisibleCount(PAGE_SIZE);
+  }
 
   // Filtered + sorted invoice list
   const filteredInvoices = useMemo(() => {
@@ -412,8 +420,14 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
                     <span>
                       {inv.currency}&nbsp;{inv.amount}
                     </span>
-                    <span>{copy.invest.labelYield}{inv.yield}</span>
-                    <span>{copy.invest.labelMaturity}{inv.dueDate}</span>
+                    <span>
+                      {copy.invest.labelYield}
+                      {inv.yield}
+                    </span>
+                    <span>
+                      {copy.invest.labelMaturity}
+                      {inv.dueDate}
+                    </span>
                   </div>
                 </li>
               ))}
