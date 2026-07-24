@@ -18,7 +18,14 @@ function renderSearch(overrides: { value?: string; placeholder?: string } = {}) 
     <InvoiceSearch
       value={overrides.value ?? ""}
       onChange={onChange}
+      aria-label="Search invoices"
       placeholder={overrides.placeholder}
+      searchTerm={undefined}
+      onSearchChange={undefined}
+      sortOption={undefined}
+      onSortChange={undefined}
+      filters={undefined}
+      onFiltersChange={undefined}
     />
   );
   return { ...result, onChange };
