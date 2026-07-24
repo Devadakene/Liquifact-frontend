@@ -148,7 +148,7 @@ describe("storage helpers", () => {
       balance: "1,234.56 XLM",
     });
 
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
     expect(stored).toEqual({
       version: 1,
       state: WALLET_STATES.CONNECTED,
@@ -238,7 +238,7 @@ describe("WalletProvider", () => {
       expect(screen.getByTestId("wallet-state")).toHaveTextContent(WALLET_STATES.CONNECTED);
     });
 
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
     expect(stored.state).toBe(WALLET_STATES.CONNECTED);
     expect(stored.address).toBe("GABC...123456");
     expect(stored.network).toBe("testnet");

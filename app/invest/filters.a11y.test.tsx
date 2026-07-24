@@ -40,7 +40,7 @@ describe("InvestMarketplace - Coming Soon Filters A11y", () => {
     expect(descriptionId).toBe("filters-coming-soon");
 
     // Ensure the description element actually exists and has the correct text
-    const descriptionElement = document.getElementById(descriptionId);
+    const descriptionElement = document.getElementById(descriptionId ?? "");
     expect(descriptionElement).toBeInTheDocument();
     expect(descriptionElement).toHaveTextContent(/Soon:/i);
   });

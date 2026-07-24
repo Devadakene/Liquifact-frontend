@@ -154,9 +154,10 @@ const MOCK_INVOICE = {
 beforeEach(() => {
   jest.clearAllMocks();
   mockGetInvoiceById.mockReturnValue(MOCK_INVOICE as ReturnType<typeof getInvoiceById>);
-  mockUseWallet.mockReturnValue({ state: "disconnected", connect: jest.fn() } as ReturnType<
-    typeof useWallet
-  >);
+  mockUseWallet.mockReturnValue({
+    state: "disconnected",
+    connect: jest.fn(),
+  } as unknown as ReturnType<typeof useWallet>);
   // The jsdom origin (http://localhost:3000) comes from the @jest-environment-options
   // docblock above — modern jsdom no longer allows deleting/reassigning window.location.
 });
@@ -374,7 +375,7 @@ describe("FundActions", () => {
       mockUseWallet.mockReturnValue({
         state: WALLET_STATES.CONNECTING,
         connect: jest.fn(),
-      } as ReturnType<typeof useWallet>);
+      } as unknown as ReturnType<typeof useWallet>);
       render(<FundActions {...defaultProps} />);
       expect(
         screen.getByRole("button", { name: copy.invest.detail.fundButtonLabel })
@@ -385,7 +386,7 @@ describe("FundActions", () => {
       mockUseWallet.mockReturnValue({
         state: WALLET_STATES.NO_WALLET,
         connect: jest.fn(),
-      } as ReturnType<typeof useWallet>);
+      } as unknown as ReturnType<typeof useWallet>);
       render(<FundActions {...defaultProps} />);
       expect(
         screen.getByRole("button", { name: copy.invest.detail.fundButtonLabel })
@@ -404,7 +405,7 @@ describe("FundActions", () => {
       mockUseWallet.mockReturnValue({
         state: WALLET_STATES.DISCONNECTED,
         connect,
-      } as ReturnType<typeof useWallet>);
+      } as unknown as ReturnType<typeof useWallet>);
       render(<FundActions {...defaultProps} />);
       fireEvent.click(screen.getByRole("button", { name: copy.invest.detail.fundButtonLabel }));
       expect(connect).toHaveBeenCalledTimes(1);
@@ -415,7 +416,7 @@ describe("FundActions", () => {
       mockUseWallet.mockReturnValue({
         state: WALLET_STATES.CONNECTED,
         connect,
-      } as ReturnType<typeof useWallet>);
+      } as unknown as ReturnType<typeof useWallet>);
       render(<FundActions {...defaultProps} />);
       fireEvent.click(screen.getByRole("button", { name: copy.invest.detail.fundButtonLabel }));
       expect(connect).not.toHaveBeenCalled();
@@ -582,7 +583,8 @@ describe("copyToClipboardFallback", () => {
     copyToClipboardFallback("https://example.com/invest/inv-001");
 
     expect(appendChild).toHaveBeenCalled();
-    const el = appendChild.mock.calls[0][0] as HTMLTextAreaElement;
+    const [firstAppendCall] = appendChild.mock.calls;
+    const el = firstAppendCall![0] as HTMLTextAreaElement;
     expect(el.tagName).toBe("TEXTAREA");
     expect(el.value).toBe("https://example.com/invest/inv-001");
     expect(el.style.position).toBe("fixed");

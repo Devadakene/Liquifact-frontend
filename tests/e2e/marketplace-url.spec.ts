@@ -33,7 +33,9 @@ test.describe("Marketplace URL sharing", () => {
     const sharedUrl = page.url();
 
     // 5. Open a fresh page in a new context (simulate sharing link to a new user/session)
-    const newContext = await context.browser().newContext();
+    const browser = context.browser();
+    if (!browser) throw new Error("Expected an active browser instance for the shared-link test");
+    const newContext = await browser.newContext();
     const newPage = await newContext.newPage();
     await newPage.goto(sharedUrl);
 

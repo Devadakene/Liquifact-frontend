@@ -33,7 +33,7 @@ import { copy } from "../app/copy/en";
 function renderWithState(
   state: string,
   overrides: Partial<{
-    walletData: Record<string, string> | null;
+    walletData: { address: string; network: string; balance?: string } | null;
     error: string | null;
     connect: () => Promise<{ outcome: string }>;
     disconnect: () => void;

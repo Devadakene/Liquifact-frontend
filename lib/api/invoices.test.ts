@@ -125,7 +125,7 @@ describe("fetchInvestableInvoices", () => {
     const promise = fetchInvestableInvoices({ signal: controller.signal, timeoutMs: 30_000 });
     controller.abort();
 
-    const err = await promise.catch((e: Error) => e);
+    const err = (await promise.catch((e: Error) => e)) as Error;
     expect(err.name).toBe("AbortError");
     expect(err).not.toBeInstanceOf(InvoiceTimeoutError);
   });
@@ -170,7 +170,8 @@ describe("fetchInvestableInvoices", () => {
 
     await fetchInvestableInvoices({ signal: controller.signal });
 
-    const usedSignal = fetchMock.mock.calls[0][1].signal as AbortSignal;
+    const [firstCall] = fetchMock.mock.calls;
+    const usedSignal = (firstCall![1] as RequestInit).signal as AbortSignal;
     // The function wraps the caller signal in its own controller, so the signal
     // passed to fetch is a different AbortSignal instance.
     expect(usedSignal).toBeInstanceOf(AbortSignal);

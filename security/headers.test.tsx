@@ -30,7 +30,7 @@ function parseCsp(csp: string): Record<string, string[]> {
       .map((part) => part.trim())
       .filter(Boolean)
       .map((part) => {
-        const [directive, ...sources] = part.split(/\s+/);
+        const [directive = "", ...sources] = part.split(/\s+/);
         return [directive, sources];
       })
   );
@@ -195,13 +195,14 @@ describe("buildSecurityHeaders", () => {
 describe("next.config.mjs headers()", () => {
   it("applies the security headers to every route", async () => {
     const { default: nextConfig } = await import("../next.config.mjs");
-    const rules = await nextConfig.headers();
+    const rules = await nextConfig.headers!();
 
     expect(Array.isArray(rules)).toBe(true);
     expect(rules).toHaveLength(1);
-    expect(rules[0].source).toBe("/:path*");
+    const rule = rules[0]!;
+    expect(rule.source).toBe("/:path*");
 
-    const keys = rules[0].headers.map((h: { key: string }) => h.key);
+    const keys = rule.headers.map((h: { key: string }) => h.key);
     expect(keys).toContain("Content-Security-Policy");
     expect(keys).toContain("X-Content-Type-Options");
     expect(keys).toContain("Referrer-Policy");
@@ -215,10 +216,10 @@ describe("next.config.mjs headers()", () => {
     jest.resetModules();
     try {
       const { default: nextConfig } = await import("../next.config.mjs");
-      const rules = await nextConfig.headers();
-      const csp = rules[0].headers.find(
+      const rules = await nextConfig.headers!();
+      const csp = rules[0]!.headers.find(
         (h: { key: string }) => h.key === "Content-Security-Policy"
-      ).value;
+      )!.value;
       expect(csp).toContain("https://api.test.example");
     } finally {
       process.env.NEXT_PUBLIC_API_URL = prev;

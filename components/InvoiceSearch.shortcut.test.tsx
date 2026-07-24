@@ -8,8 +8,8 @@ import InvoiceSearch from "./InvoiceSearch";
 const SEARCH_SHORTCUT_KEY = "/";
 const DEFAULT_PLACEHOLDER = "Search invoices...";
 
-function isEditableElement(el) {
-  if (!el || !el.tagName) return false;
+function isEditableElement(el: Element | EventTarget | null | undefined) {
+  if (!el || !(el instanceof HTMLElement) || !el.tagName) return false;
   const tag = el.tagName.toLowerCase();
   return (
     tag === "input" ||
@@ -18,8 +18,8 @@ function isEditableElement(el) {
   );
 }
 
-function createSearchShortcutHandler(focusInput) {
-  return (e) => {
+function createSearchShortcutHandler(focusInput: () => void) {
+  return (e: KeyboardEvent) => {
     if (e.key !== SEARCH_SHORTCUT_KEY) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     // Check the actual focused element, not the event target
@@ -35,7 +35,14 @@ function renderSearch(overrides: { value?: string; placeholder?: string } = {}) 
     <InvoiceSearch
       value={overrides.value ?? ""}
       onChange={onChange}
+      aria-label="Search invoices"
       placeholder={overrides.placeholder}
+      searchTerm={undefined}
+      onSearchChange={undefined}
+      sortOption={undefined}
+      onSortChange={undefined}
+      filters={undefined}
+      onFiltersChange={undefined}
     />
   );
   return { ...result, onChange };

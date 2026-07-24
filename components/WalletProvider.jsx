@@ -49,7 +49,7 @@ const PERSISTABLE_STATES = new Set([WALLET_STATES.CONNECTED]);
 
 /**
  * Truncate a Stellar address for display and persistence.
- * @param {string} address
+ * @param {string | null | undefined} address
  * @returns {string}
  */
 export function truncateAddress(address) {
@@ -130,7 +130,7 @@ export function readStoredSnapshot() {
 /**
  * Persist a minimal, non-sensitive wallet snapshot (truncated address + network only).
  * @param {string} state
- * @param {{ address: string, network: string }} walletData
+ * @param {{ address: string, network: string, balance?: string } | null} walletData
  */
 export function writeStoredSnapshot(state, walletData) {
   if (!isBrowser()) {
@@ -161,6 +161,16 @@ export function clearStoredSnapshot() {
   window.localStorage.removeItem(STORAGE_KEY);
 }
 
+/**
+ * @typedef {object} WalletContextValue
+ * @property {string} state
+ * @property {{ address: string, network: string, balance?: string } | null} walletData
+ * @property {string | null} error
+ * @property {() => Promise<{ outcome: string, message?: string }>} connect
+ * @property {() => void} disconnect
+ */
+
+/** @type {import('react').Context<WalletContextValue | null>} */
 const WalletContext = createContext(null);
 
 /** @internal Exported for unit tests that override wallet state */

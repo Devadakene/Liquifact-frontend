@@ -18,14 +18,17 @@ function renderLazy() {
 jest.mock("next/dynamic", () => {
   const ReactForMock = require("react");
 
-  return function dynamicMock(importFunc, options) {
-    function DynamicWrapper(props) {
+  return function dynamicMock(
+    importFunc: () => Promise<{ default?: unknown } & Record<string, unknown>>,
+    options?: { loading?: React.ComponentType }
+  ) {
+    function DynamicWrapper(props: Record<string, unknown>) {
       const [Component, setComponent] = ReactForMock.useState(null);
       const [isLoading, setIsLoading] = ReactForMock.useState(true);
 
       ReactForMock.useEffect(() => {
         let cancelled = false;
-        importFunc().then((mod) => {
+        importFunc().then((mod: { default?: unknown } & Record<string, unknown>) => {
           if (!cancelled) {
             setComponent(() => mod.default || mod);
             setIsLoading(false);
@@ -49,7 +52,7 @@ jest.mock("next/dynamic", () => {
     }
 
     DynamicWrapper.displayName = "DynamicWrapper";
-    const SuspenseWrapper = (props) => {
+    const SuspenseWrapper = (props: Record<string, unknown>) => {
       const inlineReact = require("react");
       return inlineReact.createElement(
         inlineReact.Suspense,

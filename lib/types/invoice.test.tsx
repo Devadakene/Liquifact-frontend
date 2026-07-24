@@ -72,8 +72,7 @@ describe("STATUS_PILL_MAP (label/tyle contract)", () => {
   });
 
   it("every entry carries a non-empty `label` string", () => {
-    for (const key of Object.keys(STATUS_PILL_MAP)) {
-      const entry = STATUS_PILL_MAP[key];
+    for (const [key, entry] of Object.entries(STATUS_PILL_MAP)) {
       expect(typeof entry.label).toBe("string");
       expect(entry.label.length).toBeGreaterThan(0);
       // Labels are designed to be safe screen-reader output (no emojis,

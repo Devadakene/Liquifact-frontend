@@ -19,13 +19,13 @@ describe.skip("Design Token Documentation Alignment", () => {
     const themeBlockMatch = /@theme\s+(?:inline\s+)?{([^}]+)}/g.exec(source);
     if (!themeBlockMatch) return [];
 
-    const themeContent = themeBlockMatch[1];
+    const themeContent = themeBlockMatch[1] ?? "";
     // Find all variable names starting with -- defined on the left side of a colon
     const matches: string[] = [];
     const regex = /^\s*(--[a-zA-Z0-9-]+)\s*:/gm;
     let match;
     while ((match = regex.exec(themeContent)) !== null) {
-      matches.push(match[1]);
+      matches.push(match[1]!);
     }
     return Array.from(new Set(matches));
   };
@@ -61,10 +61,10 @@ describe.skip("Design Token Documentation Alignment", () => {
     expect(colorForegroundMatch).not.toBeNull();
     expect(colorMutedMatch).not.toBeNull();
 
-    const bgVal = colorBgMatch![1].trim();
-    const primaryVal = colorPrimaryMatch![1].trim();
-    const foregroundVal = colorForegroundMatch![1].trim();
-    const mutedVal = colorMutedMatch![1].trim();
+    const bgVal = colorBgMatch![1]!.trim();
+    const primaryVal = colorPrimaryMatch![1]!.trim();
+    const foregroundVal = colorForegroundMatch![1]!.trim();
+    const mutedVal = colorMutedMatch![1]!.trim();
 
     expect(docSource).toContain(bgVal);
     expect(docSource).toContain(primaryVal);
