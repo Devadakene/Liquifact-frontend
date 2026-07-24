@@ -4,6 +4,7 @@ import { memo, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ErrorBanner from "@/components/ErrorBanner";
+import EmptyState, { InvoiceEmptyIllustration } from "@/components/EmptyState";
 import InvoiceListSkeleton from "@/components/InvoiceListSkeleton";
 import InvoiceSearch from "@/components/InvoiceSearch";
 import InvoiceFilters, {
@@ -422,22 +423,36 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices, onInvoiceRo
 
         {/* Error state – retryable */}
         {loadError ? (
-          <ErrorBanner
-            title={copy.invest.errorTitle}
-            description={loadError}
-            actionLabel={copy.invest.retryAction}
-            onAction={reload}
-          />
+          <section aria-label="Marketplace error state" aria-live="assertive" aria-atomic="true">
+            <ErrorBanner
+              title={copy.invest.errorTitle}
+              description={loadError}
+              actionLabel={copy.invest.retryAction}
+              onAction={reload}
+            />
+          </section>
         ) : invoices === null ? (
           <InvoiceListSkeleton rows={3} />
         ) : invoices.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-500">
-            {copy.invest.emptyState}
-          </div>
+          <section
+            aria-label="Marketplace empty state"
+            aria-live="polite"
+            aria-atomic="true"
+            role="status"
+          >
+            <EmptyState
+              icon={<InvoiceEmptyIllustration />}
+              title={copy.invest.emptyStateTitle || "No invoices available"}
+              description={copy.invest.emptyStateDescription || copy.invest.emptyState}
+            />
+          </section>
         ) : filteredInvoices.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-500">
-            {copy.invest.noMatchFilter}
-          </div>
+          <section aria-label="Marketplace no-match state" aria-live="polite" aria-atomic="true">
+            <EmptyState
+              title="No matches found"
+              description={copy.invest.noMatchFilter}
+            />
+          </section>
         ) : (
           <>
             <ul aria-label={copy.invest.listAriaLabel} className="space-y-4">

@@ -211,6 +211,8 @@ export const copy = {
     subtext:
       "Browse tokenized invoices and fund them. Estimated yield is shown for educational purposes; actual payment is received at invoice maturity.",
     emptyState: "No investable invoices. Connect wallet to see the marketplace.",
+    emptyStateTitle: "No invoices available",
+    emptyStateDescription: "No investable invoices are currently available. Connect your wallet to check back later.",
     exampleHeading: "Example Marketplace Invoice",
     exampleDisclaimer: "EXAMPLE ONLY. NOT A LIVE OFFERING.",
     errorTitle: "Unable to load investable invoices",
