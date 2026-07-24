@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ErrorBanner from "@/components/ErrorBanner";
+import EmptyState, { InvoiceEmptyIllustration } from "@/components/EmptyState";
 import InvoiceListSkeleton from "@/components/InvoiceListSkeleton";
 import InvoiceSearch from "@/components/InvoiceSearch";
 import InvoiceFilters, {
@@ -393,9 +394,11 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
         ) : invoices === null ? (
           <InvoiceListSkeleton rows={3} />
         ) : invoices.length === 0 ? (
-          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-500">
-            {copy.invest.emptyState}
-          </div>
+          <EmptyState
+            icon={<InvoiceEmptyIllustration />}
+            title="No investable invoices"
+            description={copy.invest.emptyState}
+          />
         ) : filteredInvoices.length === 0 ? (
           <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-500">
             {copy.invest.noMatchFilter}

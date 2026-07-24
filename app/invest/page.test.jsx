@@ -193,6 +193,25 @@ describe("InvestMarketplace", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders distinct EmptyState with guidance and illustration when invoice list is empty", async () => {
+    render(<InvestMarketplace loadInvoices={createDeferredLoader([], 50)} />);
+    await flushTimers(50);
+
+    // Empty state heading & guidance paragraph rendered
+    expect(
+      screen.getByRole("heading", { level: 3, name: "No investable invoices" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("No investable invoices. Connect wallet to see the marketplace.")
+    ).toBeInTheDocument();
+
+    // Skeleton and ErrorBanner are NOT present
+    expect(
+      screen.queryByRole("list", { name: /loading investable invoices/i })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("coerces a non-array load result to an empty list and announces it as empty", async () => {
     const loadInvoices = createDeferredLoader({ unexpected: "shape" }, 100);
 
@@ -225,6 +244,70 @@ describe("InvestMarketplace", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Unable to load investable invoices right now."
     );
+  });
+
+  it("renders error state with a focusable retry button, distinct from loading and empty states", async () => {
+    const loadInvoices = jest.fn(
+      () => new Promise((_, reject) => setTimeout(() => reject(new Error("Network error")), 50))
+    );
+
+    render(<InvestMarketplace loadInvoices={loadInvoices} />);
+    await flushTimers(50);
+
+    // Error banner with role="alert"
+    const alert = screen.getByRole("alert");
+    expect(alert).toHaveTextContent("Unable to load investable invoices");
+    expect(alert).toHaveTextContent("Unable to load investable invoices right now.");
+
+    // Focusable retry button
+    const retryButton = screen.getByRole("button", { name: /try again/i });
+    expect(retryButton).toBeInTheDocument();
+    expect(retryButton).not.toHaveAttribute("tabindex", "-1");
+
+    // Skeleton and empty state are NOT present
+    expect(
+      screen.queryByRole("list", { name: /loading investable invoices/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: "No investable invoices" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("verifies mutual exclusivity between loading, error, empty, and loaded states", async () => {
+    let resolveLoad;
+    let rejectLoad;
+    const loadInvoices = jest.fn(
+      () =>
+        new Promise((resolve, reject) => {
+          resolveLoad = resolve;
+          rejectLoad = reject;
+        })
+    );
+
+    render(<InvestMarketplace loadInvoices={loadInvoices} />);
+
+    // 1. Loading state active
+    expect(screen.getByRole("list", { name: /loading investable invoices/i })).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: "No investable invoices" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: /^investable invoices$/i })).not.toBeInTheDocument();
+
+    // 2. Reject -> Error state active
+    await act(async () => {
+      rejectLoad(new Error("fail"));
+      await Promise.resolve();
+    });
+
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("list", { name: /loading investable invoices/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: "No investable invoices" })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: /^investable invoices$/i })).not.toBeInTheDocument();
   });
 
   // ── Unmount / abort during a pending load ─────────────────────────────────
