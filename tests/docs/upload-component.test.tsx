@@ -137,8 +137,8 @@ describe("Named exports match source", () => {
     // and FILE_CONSTRAINTS = { accept: ".pdf", mimeType: "application/pdf", maxSizeMb: 10, maxSizeBytes: MAX_UPLOAD_BYTES }
     expect(docSource).toContain('accept: ".pdf"');
     expect(docSource).toContain('mimeType: "application/pdf"');
-    expect(docSource).toContain('maxSizeMb: 10');
-    expect(docSource).toContain('maxSizeBytes: 10 * 1024 * 1024');
+    expect(docSource).toContain("maxSizeMb: 10");
+    expect(docSource).toContain("maxSizeBytes: 10 * 1024 * 1024");
   });
 
   it("source exports FILE_CONSTRAINTS as a named export", () => {
@@ -149,7 +149,7 @@ describe("Named exports match source", () => {
     expect(componentSource).toMatch(/export\s*\{[^}]*Spinner[^}]*\}/);
   });
 
-  it("Spinner is documented as having role=\"img\" and aria-label", () => {
+  it('Spinner is documented as having role="img" and aria-label', () => {
     expect(docSource).toContain('role="img"');
     expect(docSource).toContain("aria-label");
   });
@@ -192,7 +192,7 @@ describe("Upload states match source", () => {
   });
 
   it("documents that uploading shows a progress bar when progress prop is provided", () => {
-    expect(docSource).toContain("role=\"progressbar\"");
+    expect(docSource).toContain('role="progressbar"');
   });
 
   it("documents that error status resets to idle", () => {
@@ -252,7 +252,7 @@ describe("Validation pipeline matches source", () => {
 // ---------------------------------------------------------------------------
 
 describe("Accessibility documentation matches source", () => {
-  it("documents role=\"button\" on drop zone", () => {
+  it('documents role="button" on drop zone', () => {
     expect(docSource).toContain('role="button"');
   });
 
@@ -265,19 +265,19 @@ describe("Accessibility documentation matches source", () => {
     expect(docSource).toContain("Space");
   });
 
-  it("documents role=\"alert\" for error messages", () => {
+  it('documents role="alert" for error messages', () => {
     expect(docSource).toContain('role="alert"');
   });
 
-  it("documents aria-live=\"assertive\" for errors", () => {
+  it('documents aria-live="assertive" for errors', () => {
     expect(docSource).toContain('aria-live="assertive"');
   });
 
-  it("documents role=\"status\" for upload/success status", () => {
+  it('documents role="status" for upload/success status', () => {
     expect(docSource).toContain('role="status"');
   });
 
-  it("documents aria-live=\"polite\" for status updates", () => {
+  it('documents aria-live="polite" for status updates', () => {
     expect(docSource).toContain('aria-live="polite"');
   });
 
@@ -285,11 +285,11 @@ describe("Accessibility documentation matches source", () => {
     expect(docSource).toContain("aria-disabled");
   });
 
-  it("documents role=\"note\" for constraint notice", () => {
+  it('documents role="note" for constraint notice', () => {
     expect(docSource).toContain('role="note"');
   });
 
-  it("source implements role=\"button\" on drop zone", () => {
+  it('source implements role="button" on drop zone', () => {
     expect(componentSource).toContain('role="button"');
   });
 
@@ -297,15 +297,15 @@ describe("Accessibility documentation matches source", () => {
     expect(componentSource).toContain("tabIndex={0}");
   });
 
-  it("source implements role=\"alert\" for errors", () => {
+  it('source implements role="alert" for errors', () => {
     expect(componentSource).toContain('role="alert"');
   });
 
-  it("source implements role=\"status\" for status updates", () => {
+  it('source implements role="status" for status updates', () => {
     expect(componentSource).toContain('role="status"');
   });
 
-  it("source implements role=\"progressbar\" for progress", () => {
+  it('source implements role="progressbar" for progress', () => {
     expect(componentSource).toContain('role="progressbar"');
   });
 
@@ -363,7 +363,7 @@ describe("Copy strings documentation matches source", () => {
 
 describe("File constraints documentation matches source", () => {
   it("documents .pdf accept value", () => {
-    expect(docSource).toContain('.pdf');
+    expect(docSource).toContain(".pdf");
   });
 
   it("documents 10 MB max size", () => {
