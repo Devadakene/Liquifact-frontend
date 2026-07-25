@@ -508,6 +508,8 @@ Drag-and-drop (or click-to-browse) PDF invoice upload form with comprehensive cl
 
 **File:** `components/UploadZone.jsx`
 
+> **Detailed contract:** For the full component contract (props, states, validation pipeline, accessibility), see [docs/upload-component.md](docs/upload-component.md).
+
 ### Props
 
 | Prop              | Type                 | Default     | Description                                                                                                                                                                                                                     |

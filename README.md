@@ -829,6 +829,8 @@ We welcome UI improvements, new pages (e.g. invoice upload, marketplace), and St
 
 See [COMPONENTS.md](COMPONENTS.md) for the full component library reference — props, accessibility notes, and usage examples for every shared component (`ErrorBanner`, `Footer`, `InvoiceListSkeleton`, `ToastProvider`, `UploadZone`, `WalletProvider`, `WalletStatus`).
 
+For the detailed UploadZone component contract (props, states, validation pipeline, accessibility, and usage examples), see the [Upload Component Contract](docs/upload-component.md).
+
 - **UploadZone Progress Indicator**: During the upload phase, if a `progress` prop (number between `0` and `100`) is supplied to `UploadZone`, a determinate progress bar (`role="progressbar"`) is displayed. If no `progress` is supplied, it falls back to an indeterminate spinner. Smooth transitions are disabled when `prefers-reduced-motion` is active.
 - **UploadZone Reset Flow**: After a successful upload (status = `"success"`), an **"Upload another invoice"** button appears below the success message. Clicking it:
   - Clears the file, error, and status back to their initial (idle) values.
