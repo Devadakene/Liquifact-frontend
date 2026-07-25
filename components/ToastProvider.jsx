@@ -15,6 +15,9 @@ export { ToastContext };
 const AUTO_DISMISS_MS = 5000;
 // Keep the visible toast stack small so bursty errors do not cover the viewport.
 const MAX_TOASTS = 3;
+// Debounce delay (ms) for the polite aria-live announcer.
+// Rapid successive updates are collapsed into a single announcement.
+export const ANNOUNCE_DEBOUNCE_MS = 200;
 const VARIANT_STYLES = {
   success: {
     base: "border-emerald-500/30 bg-emerald-500/10 text-emerald-100",
@@ -35,6 +38,21 @@ const VARIANT_STYLES = {
     label: "Info",
   },
 };
+
+/**
+ * Builds the text string that the offscreen aria-live announcer will read.
+ * Returns an empty string when there are no toasts (clears the region).
+ *
+ * @param {Array} toasts - The current toast array.
+ * @returns {string}
+ */
+export function getAnnouncementText(toasts) {
+  if (!toasts || toasts.length === 0) return "";
+  const count = toasts.length;
+  const label = count === 1 ? "notification" : "notifications";
+  const titles = toasts.map((t) => t.title).join(", ");
+  return `${count} ${label}: ${titles}`;
+}
 
 function getToastKey({ variant = "info", title, message }) {
   return `${variant}::${title || ""}::${message || ""}`;
@@ -69,6 +87,107 @@ function restoreFocusTo(el) {
   });
 }
 
+const ToastRow = memo(function ToastRow({
+  toast,
+  variant,
+  pauseToast,
+  resumeToast,
+  dismissAndReturnFocus,
+  containerRef,
+  preDismissFocusRef,
+}) {
+  return (
+    <div
+      key={toast.id}
+      tabIndex={0}
+      onMouseEnter={() => pauseToast(toast.id)}
+      onMouseLeave={() => resumeToast(toast.id)}
+      onFocus={(e) => {
+        if (!containerRef.current?.contains(e.relatedTarget)) {
+          preDismissFocusRef.current = e.relatedTarget;
+        }
+        pauseToast(toast.id);
+      }}
+      onBlur={(e) => {
+        if (!containerRef.current?.contains(e.relatedTarget)) {
+          resumeToast(toast.id);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          dismissAndReturnFocus(toast.id);
+        }
+      }}
+      className={`pointer-events-auto overflow-hidden rounded-3xl border p-4 shadow-2xl shadow-slate-950/30 transition duration-200 ${variant.base}`}
+    >
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 text-xl" aria-hidden="true">
+          {variant.icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-slate-100">{toast.title}</p>
+          <p className="mt-1 text-sm leading-6 text-slate-300">{toast.message}</p>
+        </div>
+        <button
+          type="button"
+          className="rounded-full border border-slate-700/80 bg-slate-950/70 px-2.5 py-1 text-xs font-semibold text-slate-100 outline-none transition duration-150 hover:bg-slate-900 focus-visible:ring-2 focus-visible:ring-cyan-400"
+          aria-label="Dismiss notification"
+          onClick={() => dismissAndReturnFocus(toast.id)}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+});
+
+export const ToastViewport = memo(function ToastViewport({
+  toasts,
+  pauseToast,
+  resumeToast,
+  dismissAndReturnFocus,
+  containerRef,
+  preDismissFocusRef,
+}) {
+  const memoizedRows = useMemo(
+    () =>
+      toasts.map((toast) => {
+        const variant = VARIANT_STYLES[toast.variant] || VARIANT_STYLES.info;
+        return {
+          toast,
+          variant,
+        };
+      }),
+    [toasts]
+  );
+
+  return (
+    <div
+      aria-live="polite"
+      role="status"
+      ref={containerRef}
+      data-testid="toast-viewport"
+      className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4 sm:justify-end sm:px-6"
+    >
+      <div className="flex w-full max-w-md flex-col gap-3">
+        {memoizedRows.map(({ toast, variant }) => (
+          <ToastRow
+            key={toast.id}
+            toast={toast}
+            variant={variant}
+            pauseToast={pauseToast}
+            resumeToast={resumeToast}
+            dismissAndReturnFocus={dismissAndReturnFocus}
+            containerRef={containerRef}
+            preDismissFocusRef={preDismissFocusRef}
+          />
+        ))}
+      </div>
+    </div>
+  );
+});
+
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const timers = useRef(new Map());
@@ -82,6 +201,40 @@ export function ToastProvider({ children }) {
   // fallback for document-level Escape handling, where focus never enters the toast
   // (so onFocus never fires to populate preDismissFocusRef).
   const addTimeFocusRef = useRef(null);
+
+  // --- Polite aria-live announcer (issue #555) ---
+  // A dedicated offscreen text region is more reliable than letting screen readers
+  // interpret the full toast-card DOM mutations in the ToastViewport live region.
+  const [announcement, setAnnouncement] = useState("");
+  // Skip the very first render so that screen readers are not triggered on mount
+  // when there are no toasts yet.
+  const isMountedRef = useRef(false);
+  // Holds the debounce timer id for the announcer.
+  const announceTimerRef = useRef(null);
+
+  useEffect(() => {
+    // Skip on initial mount — only announce real changes.
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+
+    // Debounce: cancel any pending announcement and schedule a fresh one.
+    if (announceTimerRef.current !== null) {
+      clearTimeout(announceTimerRef.current);
+    }
+    announceTimerRef.current = setTimeout(() => {
+      announceTimerRef.current = null;
+      setAnnouncement(getAnnouncementText(toasts));
+    }, ANNOUNCE_DEBOUNCE_MS);
+
+    return () => {
+      if (announceTimerRef.current !== null) {
+        clearTimeout(announceTimerRef.current);
+        announceTimerRef.current = null;
+      }
+    };
+  }, [toasts]);
 
   const clearToastTimer = useCallback((id) => {
     const timeout = timers.current.get(id);
@@ -252,74 +405,28 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={value}>
       {children}
 
+      {/* Offscreen polite announcer — a plain text string is more reliably
+          read by NVDA / JAWS / VoiceOver than the full toast-card DOM mutations
+          inside ToastViewport. aria-atomic ensures the whole string is read on
+          every update rather than only the diff. */}
       <div
-        aria-live="polite"
         role="status"
-        ref={containerRef}
-        className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4 sm:justify-end sm:px-6"
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="toast-announcer"
+        className="sr-only"
       >
-        <div className="flex w-full max-w-md flex-col gap-3">
-          {toasts.map((toast) => {
-            const variant = VARIANT_STYLES[toast.variant] || VARIANT_STYLES.info;
-
-            return (
-              <div
-                key={toast.id}
-                // tabIndex={0} makes the card itself focusable so keyboard users can
-                // reach it via Tab and then use Escape to dismiss without having to
-                // navigate to the Close button first.
-                tabIndex={0}
-                onMouseEnter={() => pauseToast(toast.id)}
-                onMouseLeave={() => resumeToast(toast.id)}
-                // Mirror hover pause/resume for keyboard users: focusing the card (or
-                // any element inside it) pauses the timer; blurring resumes it.
-                onFocus={(e) => {
-                  // Record the previously-focused element the first time focus enters
-                  // this toast so we can restore it on dismissal.
-                  if (!containerRef.current?.contains(e.relatedTarget)) {
-                    preDismissFocusRef.current = e.relatedTarget;
-                  }
-                  pauseToast(toast.id);
-                }}
-                onBlur={(e) => {
-                  // Only resume if focus has left this toast entirely (not just moved
-                  // between the card and its Close button).
-                  if (!containerRef.current?.contains(e.relatedTarget)) {
-                    resumeToast(toast.id);
-                  }
-                }}
-                // Escape dismisses the currently-focused toast, matching common dialog
-                // and menu patterns so keyboard users have a single consistent shortcut.
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    e.preventDefault();
-                    dismissAndReturnFocus(toast.id);
-                  }
-                }}
-                className={`pointer-events-auto overflow-hidden rounded-3xl border p-4 shadow-2xl shadow-slate-950/30 transition duration-200 ${variant.base}`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 text-xl" aria-hidden="true">
-                    {variant.icon}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-100">{toast.title}</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">{toast.message}</p>
-                  </div>
-                  <button
-                    type="button"
-                    className="rounded-full border border-slate-700/80 bg-slate-950/70 px-2.5 py-1 text-xs font-semibold text-slate-100 outline-none transition duration-150 hover:bg-slate-900 focus-visible:ring-2 focus-visible:ring-cyan-400"
-                    aria-label="Dismiss notification"
-                    onClick={() => dismissAndReturnFocus(toast.id)}
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {announcement}
       </div>
+
+      <ToastViewport
+        toasts={toasts}
+        pauseToast={pauseToast}
+        resumeToast={resumeToast}
+        dismissAndReturnFocus={dismissAndReturnFocus}
+        containerRef={containerRef}
+        preDismissFocusRef={preDismissFocusRef}
+      />
     </ToastContext.Provider>
   );
 }
