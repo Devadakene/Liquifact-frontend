@@ -51,6 +51,10 @@
   "overrides": {
     "sharp": "^0.35.3",
     "postcss": "^8.5.21",
-    "brace-expansion": "^5.0.8"
+    "@eslint/config-array": {
+      "minimatch": {
+        "brace-expansion": "1.1.11"
+      }
+    }
   }
 }
