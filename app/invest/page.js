@@ -396,18 +396,11 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
             <InvoiceListSkeleton rows={3} />
           </div>
         ) : invoices.length === 0 ? (
-          <section
-            aria-label="Marketplace empty state"
-            aria-live="polite"
-            aria-atomic="true"
-            role="status"
-          >
-            <EmptyState
-              icon={<InvoiceEmptyIllustration />}
-              title={copy.invest.emptyStateTitle || "No invoices available"}
-              description={copy.invest.emptyStateDescription || copy.invest.emptyState}
-            />
-          </section>
+          <EmptyState
+            icon={<InvoiceEmptyIllustration />}
+            title="No investable invoices"
+            description={copy.invest.emptyState}
+          />
         ) : filteredInvoices.length === 0 ? (
           <section aria-label="Marketplace no-match state" aria-live="polite" aria-atomic="true">
             <EmptyState
