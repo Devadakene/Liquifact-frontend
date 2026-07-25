@@ -2,16 +2,10 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { axe } from "jest-axe";
 import { ToastProvider, useToast } from "./ToastProvider";
 
-type ToastApi = {
-  success: (msg: string, title?: string) => void;
-  error: (msg: string, title?: string) => void;
-  info: (msg: string, title?: string) => void;
-};
-
 const AUTO_DISMISS_MS = 5000;
 
 function ToastConsumer() {
-  const toast = useToast() as ToastApi;
+  const toast = useToast();
 
   return (
     <div>
@@ -75,7 +69,7 @@ describe("ToastProvider", () => {
     fireEvent.click(screen.getByRole("button", { name: "Trigger error" }));
     fireEvent.click(screen.getByRole("button", { name: "Trigger info" }));
 
-    const liveRegion = screen.getByTestId("toast-viewport");
+    const liveRegion = screen.getByRole("status");
     expect(liveRegion).toHaveAttribute("aria-live", "polite");
 
     expect(within(liveRegion).getByText(/^Success$/)).toBeInTheDocument();
@@ -104,7 +98,7 @@ describe("ToastProvider", () => {
     const card = toastTitle.closest("div.pointer-events-auto");
     expect(card).toBeInTheDocument();
 
-    const closeButton = within(card as HTMLElement).getByRole("button", {
+    const closeButton = within(card as Element).getByRole("button", {
       name: "Dismiss notification",
     });
     act(() => {

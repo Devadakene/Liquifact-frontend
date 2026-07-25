@@ -19,21 +19,7 @@ jest.mock("../lib/observability/reportError", () => ({
 }));
 
 jest.mock("../components/ErrorBanner", () => {
-  function MockErrorBanner({
-    title,
-    description,
-    actionLabel,
-    onAction,
-    previewLabel,
-    variant,
-  }: {
-    title: string;
-    description: string;
-    actionLabel?: string;
-    onAction?: () => void;
-    previewLabel?: string;
-    variant?: string;
-  }) {
+  function MockErrorBanner({ title, description, actionLabel, onAction, previewLabel, variant }) {
     return (
       <div
         role="alert"
@@ -64,8 +50,8 @@ import { copy } from "./copy/en";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeError(message = "Test error", digest: string | undefined = undefined) {
-  const err = new Error(message) as Error & { digest?: string };
+function makeError(message = "Test error", digest = undefined) {
+  const err = new Error(message);
   if (digest !== undefined) err.digest = digest;
   return err;
 }
@@ -149,7 +135,7 @@ describe("GlobalError (app/error.js)", () => {
 
     it("does not crash when error has no digest property", () => {
       const error = makeError("no digest");
-      delete (error as Error & { digest?: string }).digest;
+      delete error.digest;
       expect(() => renderError(error)).not.toThrow();
       expect(reportError).toHaveBeenCalledWith(error, { digest: undefined });
     });

@@ -6,7 +6,7 @@ const cssSource = fs.readFileSync(path.join(__dirname, "globals.css"), "utf8");
 const extractToken = (name: string) => {
   // Match either direct hex assignments or var() references
   const match = new RegExp(`${name}:\\s*(#(?:[0-9a-f]{6})|var\(--[a-z-]+\))`, "i").exec(cssSource);
-  return match && match[1] ? match[1].toLowerCase() : null;
+  return match ? match[1].toLowerCase() : null;
 };
 
 describe.skip("globals.css theme tokens", () => {

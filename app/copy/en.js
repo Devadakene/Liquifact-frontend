@@ -74,12 +74,6 @@
  * @property {string} invest.detail.copyErrorTitle
  * @property {string} invest.detail.loadErrorMsg
  * @property {string} invest.detail.loadErrorTitle
- * @property {string} invest.detail.emptyStateTitle
- * @property {string} invest.detail.emptyStateDescription
- * @property {string} invest.detail.retryLabel
- * @property {string} invest.detail.announceLoading
- * @property {string} invest.detail.announceError
- * @property {string} invest.detail.announceEmpty
  * @property {Object} invoices - Invoices page copy
  * @property {string} invoices.title
  * @property {string} invoices.subtext
@@ -216,8 +210,6 @@ export const copy = {
     subtext:
       "Browse tokenized invoices and fund them. Estimated yield is shown for educational purposes; actual payment is received at invoice maturity.",
     emptyState: "No investable invoices. Connect wallet to see the marketplace.",
-    emptyStateTitle: "No invoices available",
-    emptyStateDescription: "No investable invoices are currently available. Connect your wallet to check back later.",
     exampleHeading: "Example Marketplace Invoice",
     exampleDisclaimer: "EXAMPLE ONLY. NOT A LIVE OFFERING.",
     errorTitle: "Unable to load investable invoices",
@@ -278,12 +270,6 @@ export const copy = {
       copyErrorTitle: "Copy failed",
       loadErrorMsg: "Unable to load invoice details right now.",
       loadErrorTitle: "Unable to load invoice details",
-      emptyStateTitle: "Invoice not found",
-      emptyStateDescription: "We could not find an invoice with this identifier. It may have been removed or the link might be incorrect.",
-      retryLabel: "Try again",
-      announceLoading: "Loading invoice details.",
-      announceError: "Failed to load invoice details.",
-      announceEmpty: "No invoice found.",
     },
   },
   invoices: {

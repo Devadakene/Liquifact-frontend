@@ -29,14 +29,7 @@ jest.mock("next/navigation", () => ({
 
 // Mock next/link
 jest.mock("next/link", () => {
-  const MockLink = ({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: React.ReactNode;
-  } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
+  const MockLink = ({ href, children, ...props }) => (
     <a href={href} {...props}>
       {children}
     </a>

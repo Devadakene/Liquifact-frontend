@@ -38,7 +38,7 @@ const BASE_INVOICE = {
   currency: "USDC",
   dueDate: "2025-09-30",
   yield: 8.5,
-  status: "Open" as const,
+  status: "Open",
 };
 
 function renderCard(overrides = {}) {

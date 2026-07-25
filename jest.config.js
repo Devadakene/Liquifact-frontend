@@ -14,7 +14,10 @@ const config = {
     "\\.spec\\.(jsx|ts|tsx)$",
   ],
   transform: {
-    "^.+\\.(js|jsx|ts|tsx|mjs)$": "babel-jest",
+    "^.+\\.(js|jsx|ts|tsx|mjs)$": [
+      "babel-jest",
+      { configFile: require("path").join(__dirname, "babel-jest.config.js") },
+    ],
   },
   transformIgnorePatterns: ["/node_modules/(?!(next|@next)/)"],
 };

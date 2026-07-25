@@ -146,9 +146,7 @@ describe("matchesYieldRange (inclusive boundaries)", () => {
     });
 
     it("treats `undefined` and `null` bounds as empty", () => {
-      expect(
-        matchesYieldRange("8.2%", undefined as unknown as string, undefined as unknown as string)
-      ).toBe(true);
+      expect(matchesYieldRange("8.2%", undefined, undefined)).toBe(true);
       expect(matchesYieldRange("8.2%", null as unknown as string, "")).toBe(true);
       expect(matchesYieldRange("8.2%", "", null as unknown as string)).toBe(true);
     });
@@ -245,7 +243,7 @@ describe("matchesCurrency (strict equality)", () => {
   });
 
   it("treats `undefined` and `null` filter as empty", () => {
-    expect(matchesCurrency("USD", undefined as unknown as string)).toBe(true);
+    expect(matchesCurrency("USD", undefined)).toBe(true);
     expect(matchesCurrency("USD", null as unknown as string)).toBe(true);
   });
 
@@ -466,22 +464,22 @@ describe("matchesFilters (combined intersection of all three predicates)", () =>
      * above) and are easier to read than computing offsets against FIXTURE.
      */
     const invBelow: Invoice = {
-      ...FIXTURE[0]!,
+      ...FIXTURE[0],
       id: "boundary-below",
       yield: "7.9%",
     };
     const invAtMin: Invoice = {
-      ...FIXTURE[0]!,
+      ...FIXTURE[0],
       id: "boundary-at-min",
       yield: "8.0%",
     };
     const invAtMax: Invoice = {
-      ...FIXTURE[0]!,
+      ...FIXTURE[0],
       id: "boundary-at-max",
       yield: "9.0%",
     };
     const invAbove: Invoice = {
-      ...FIXTURE[0]!,
+      ...FIXTURE[0],
       id: "boundary-above",
       yield: "9.1%",
     };
@@ -521,7 +519,7 @@ describe("matchesFilters (combined intersection of all three predicates)", () =>
 
     it("short-circuits on first failing predicate when the others are empty", () => {
       // currency failing should make the whole match `false` even if yield + maturity pass
-      const usdInvoice: Invoice = { ...FIXTURE[0]!, currency: "USD" };
+      const usdInvoice: Invoice = { ...FIXTURE[0], currency: "USD" };
       const f = { ...DEFAULT_FILTERS, currency: "EUR" }; // EUR ≠ USD → fails at currency
       expect(matchesFilters(usdInvoice, f)).toBe(false);
     });
@@ -532,21 +530,21 @@ describe("matchesFilters (combined intersection of all three predicates)", () =>
 
 describe("predicate purity & determinism", () => {
   it("matchesYieldRange does not mutate its inputs", () => {
-    const inv = FIXTURE[2]!;
+    const inv = FIXTURE[2];
     const snapshot = JSON.parse(JSON.stringify(inv));
     matchesYieldRange(inv.yield, "8.0", "9.0");
     expect(inv).toEqual(snapshot);
   });
 
   it("matchesCurrency does not mutate its inputs", () => {
-    const inv = FIXTURE[2]!;
+    const inv = FIXTURE[2];
     const snapshot = JSON.parse(JSON.stringify(inv));
     matchesCurrency(inv.currency, "EUR");
     expect(inv).toEqual(snapshot);
   });
 
   it("matchesFilters does not mutate the invoice", () => {
-    const inv = FIXTURE[2]!;
+    const inv = FIXTURE[2];
     const snapshot = JSON.parse(JSON.stringify(inv));
     const filters = { ...DEFAULT_FILTERS, currency: "EUR", yieldMin: "8.0" };
     matchesFilters(inv, filters);
@@ -554,7 +552,7 @@ describe("predicate purity & determinism", () => {
   });
 
   it("matchesFilters does not mutate the filters", () => {
-    const inv = FIXTURE[2]!;
+    const inv = FIXTURE[2];
     const filters = {
       ...DEFAULT_FILTERS,
       currency: "EUR" as string,
@@ -567,10 +565,10 @@ describe("predicate purity & determinism", () => {
 
   it("repeated calls with the same inputs return the same answer (deterministic)", () => {
     const inputs: { invoice: Invoice; filters: typeof DEFAULT_FILTERS }[] = [
-      { invoice: FIXTURE[0]!, filters: DEFAULT_FILTERS },
-      { invoice: FIXTURE[2]!, filters: { ...DEFAULT_FILTERS, currency: "USD" } },
+      { invoice: FIXTURE[0], filters: DEFAULT_FILTERS },
+      { invoice: FIXTURE[2], filters: { ...DEFAULT_FILTERS, currency: "USD" } },
       {
-        invoice: FIXTURE[2]!,
+        invoice: FIXTURE[2],
         filters: { ...DEFAULT_FILTERS, yieldMin: "8.0", yieldMax: "9.0" },
       },
     ];

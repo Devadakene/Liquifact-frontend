@@ -313,8 +313,8 @@ describe("useLocalStorage — cross-instance state sharing", () => {
     const { result: a } = renderHook(() => useLocalStorage("lhf:A", "alpha-default"));
     const { result: b } = renderHook(() => useLocalStorage("lhf:B", "beta-default"));
 
-    act(() => a.current[1]("ALPHA"));
-    act(() => b.current[1]("BETA"));
+    act(() => a.result.current[1]("ALPHA"));
+    act(() => b.result.current[1]("BETA"));
 
     expect(window.localStorage.getItem("lhf:A")).toBe(JSON.stringify("ALPHA"));
     expect(window.localStorage.getItem("lhf:B")).toBe(JSON.stringify("BETA"));

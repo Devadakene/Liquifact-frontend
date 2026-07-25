@@ -9,37 +9,13 @@ import {
   getActiveFilterChips,
   getResultsSummaryText,
   hasAnyActiveFilters,
-  matchesFilters,
 } from "@/components/InvoiceFilters";
-import { InvestMarketplace, PAGE_SIZE, SEARCH_DEBOUNCE_MS, applySortToList } from "./page";
+import { filterInvoices, InvestMarketplace, PAGE_SIZE, SEARCH_DEBOUNCE_MS } from "./page";
 import { WalletProvider } from "@/components/WalletProvider";
 import { ToastProvider } from "@/components/ToastProvider";
 
-// filterInvoices was removed from page.js; reconstruct locally for the skipped tests
-function filterInvoices(
-  invoices: unknown[] | null,
-  search: string,
-  filters: Record<string, unknown>
-) {
-  if (!Array.isArray(invoices)) return [];
-  const q = search.trim().toLowerCase();
-  const filtered = invoices.filter((inv: any) => {
-    if (q && !inv.issuer?.toLowerCase().includes(q)) return false;
-    return matchesFilters(inv, filters);
-  });
-  return applySortToList(filtered, filters);
-}
-
 jest.mock("next/link", () => {
-  function MockLink({
-    href,
-    children,
-    ...props
-  }: {
-    href: string;
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) {
+  function MockLink({ href, children, ...props }) {
     return (
       <a href={href} {...props}>
         {children}
@@ -50,7 +26,7 @@ jest.mock("next/link", () => {
   return { __esModule: true, default: MockLink };
 });
 
-function createDeferredLoader(invoices: unknown[], delayMs = 0) {
+function createDeferredLoader(invoices, delayMs = 0) {
   return jest.fn(
     () =>
       new Promise((resolve) => {
@@ -66,7 +42,7 @@ async function flushTimers(delayMs = 0) {
   });
 }
 
-function makeInvoices(count: number) {
+function makeInvoices(count) {
   return Array.from({ length: count }, (_, i) => ({
     id: `inv-${String(i + 1).padStart(3, "0")}`,
     issuer: `Issuer ${i + 1}`,

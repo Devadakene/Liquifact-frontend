@@ -101,8 +101,7 @@ function UploadZone({ onUploadSuccess, progress }) {
   const dropzoneRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState(null);
-  const [validationError, setValidationError] = useState(null);
-  const [submissionError, setSubmissionError] = useState(null);
+  const [error, setError] = useState(null);
   const [status, setStatus] = useState("idle");
 
   /**
@@ -113,8 +112,7 @@ function UploadZone({ onUploadSuccess, progress }) {
    */
   function resetUpload() {
     setFile(null);
-    setValidationError(null);
-    setSubmissionError(null);
+    setError(null);
     setStatus("idle");
     if (inputRef.current) {
       inputRef.current.value = "";
@@ -145,24 +143,22 @@ function UploadZone({ onUploadSuccess, progress }) {
     setStatus("idle");
     const err = validate(f);
     if (err) {
-      setValidationError(err);
-      setSubmissionError(null);
+      setError(err);
       setFile(null);
       return;
     }
     // Optimistically set the file and clear any previous error.
-    setValidationError(null);
-    setSubmissionError(null);
     setFile(f);
+    setError(null);
     // Comprehensive PDF validation (async). If it fails, clear the file and show error.
     try {
       const validation = await validatePdfFile(f);
       if (!validation.valid) {
-        setValidationError(validation.reason || copy.uploadZone.errorInvalidPdf);
+        setError(validation.reason || copy.uploadZone.errorInvalidPdf);
         setFile(null);
       }
     } catch (e) {
-      setValidationError(copy.uploadZone.errorReadFailed);
+      setError(copy.uploadZone.errorReadFailed);
       setFile(null);
     }
   }
@@ -181,10 +177,10 @@ function UploadZone({ onUploadSuccess, progress }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!file || validationError || status !== "idle") return;
+    if (!file || status !== "idle") return;
 
     setStatus("uploading");
-    setSubmissionError(null);
+    setError(null);
 
     try {
       const body = new FormData();
@@ -218,7 +214,7 @@ function UploadZone({ onUploadSuccess, progress }) {
         });
       }
     } catch (err) {
-      setSubmissionError(err.message || copy.uploadZone.errorUploadFailed);
+      setError(err.message || copy.uploadZone.errorUploadFailed);
       setStatus("idle");
     }
   }
@@ -234,7 +230,7 @@ function UploadZone({ onUploadSuccess, progress }) {
 
   const dropZoneBorder = dragOver
     ? "border-cyan-400 bg-cyan-500/10"
-    : validationError || submissionError
+    : error
       ? "border-red-500/50 bg-red-500/5"
       : file
         ? "border-emerald-500/40 bg-emerald-500/5"
@@ -254,8 +250,6 @@ function UploadZone({ onUploadSuccess, progress }) {
         accept={FILE_CONSTRAINTS.accept}
         className="sr-only"
         aria-label={copy.uploadZone.fileInputLabel}
-        aria-invalid={Boolean(validationError)}
-        aria-describedby={validationError ? "invoice-file-error" : undefined}
         onChange={handleChange}
       />
       <div
@@ -306,26 +300,14 @@ function UploadZone({ onUploadSuccess, progress }) {
         )}
       </div>
 
-      {validationError && (
-        <p
-          id="invoice-file-error"
-          role="alert"
-          aria-live="assertive"
-          className="mt-3 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
-        >
-          <span aria-hidden="true">{"⚠️"}</span>
-          {validationError}
-        </p>
-      )}
-
-      {submissionError && (
+      {error && (
         <p
           role="alert"
           aria-live="assertive"
           className="mt-3 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
         >
           <span aria-hidden="true">{"⚠️"}</span>
-          {submissionError}
+          {error}
         </p>
       )}
 
@@ -395,8 +377,8 @@ function UploadZone({ onUploadSuccess, progress }) {
       <button
         id="invoice-upload-btn"
         type="submit"
-        disabled={!file || Boolean(validationError) || isProcessing}
-        aria-disabled={!file || Boolean(validationError) || isProcessing}
+        disabled={!file || isProcessing}
+        aria-disabled={!file || isProcessing}
         className="mt-4 w-full rounded-xl bg-cyan-500 py-3 text-sm font-semibold text-slate-950 transition-all duration-200
           hover:bg-cyan-400 focus-ring
           disabled:opacity-40 disabled:cursor-not-allowed"

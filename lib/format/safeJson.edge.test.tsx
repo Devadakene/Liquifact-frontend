@@ -193,7 +193,7 @@ describe("safeJson edge cases and boundaries", () => {
       expect(safeJsonStringify(sym)).toBe(""); // JSON.stringify(sym) returns undefined, coerced to empty string
 
       // Top level BigInt: JSON.stringify(10n) throws TypeError, falls back to String(10n) -> "10"
-      expect(safeJsonStringify(BigInt(10))).toBe("10");
+      expect(safeJsonStringify(10n)).toBe("10");
     });
 
     it("handles nested functions and symbols", () => {
@@ -212,7 +212,7 @@ describe("safeJson edge cases and boundaries", () => {
     it("handles nested BigInts with standard fallback to String()", () => {
       // BigInt in nested object will throw TypeError in JSON.stringify,
       // falling back to String(obj) -> "[object Object]"
-      const nestedBigInt = { val: BigInt(42) };
+      const nestedBigInt = { val: 42n };
       const result = safeJsonStringify(nestedBigInt);
       expect(result).toBe("[object Object]");
     });

@@ -4,7 +4,6 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ErrorBanner from "@/components/ErrorBanner";
-import EmptyState, { InvoiceEmptyIllustration } from "@/components/EmptyState";
 import InvoiceListSkeleton from "@/components/InvoiceListSkeleton";
 import InvoiceSearch from "@/components/InvoiceSearch";
 import InvoiceFilters, {
@@ -14,7 +13,6 @@ import InvoiceFilters, {
   parseSortState,
 } from "@/components/InvoiceFilters";
 import NavMenu from "@/components/NavMenu";
-import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
 import { copy } from "../copy/en";
 // Mock data is sourced exclusively from lib.js (single source of truth until the API client lands).
 import { loadMockInvoices } from "./lib";
@@ -180,8 +178,11 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
   }, []);
 
   // Debounced search term
-  const debouncedSearch = useDebouncedValue(searchQuery, SEARCH_DEBOUNCE_MS);
-
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   // Reset the visible page count to PAGE_SIZE whenever the filters or debounced
   // search term change, using the React-sanctioned "adjust state during render"
@@ -383,31 +384,22 @@ export function InvestMarketplace({ loadInvoices = loadMockInvoices }) {
 
         {/* Error state – retryable */}
         {loadError ? (
-          <section aria-label="Marketplace error state" aria-live="assertive" aria-atomic="true">
-            <ErrorBanner
-              title={copy.invest.errorTitle}
-              description={loadError}
-              actionLabel={copy.invest.retryAction}
-              onAction={reload}
-            />
-          </section>
-        ) : invoices === null ? (
-          <div role="status" aria-live="polite" aria-label="Loading marketplace invoices">
-            <InvoiceListSkeleton rows={3} />
-          </div>
-        ) : invoices.length === 0 ? (
-          <EmptyState
-            icon={<InvoiceEmptyIllustration />}
-            title="No investable invoices"
-            description={copy.invest.emptyState}
+          <ErrorBanner
+            title={copy.invest.errorTitle}
+            description={loadError}
+            actionLabel={copy.invest.retryAction}
+            onAction={reload}
           />
+        ) : invoices === null ? (
+          <InvoiceListSkeleton rows={3} />
+        ) : invoices.length === 0 ? (
+          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-500">
+            {copy.invest.emptyState}
+          </div>
         ) : filteredInvoices.length === 0 ? (
-          <section aria-label="Marketplace no-match state" aria-live="polite" aria-atomic="true">
-            <EmptyState
-              title="No matches found"
-              description={copy.invest.noMatchFilter}
-            />
-          </section>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-8 text-center text-slate-500">
+            {copy.invest.noMatchFilter}
+          </div>
         ) : (
           <>
             <ul aria-label={copy.invest.listAriaLabel} className="space-y-4">

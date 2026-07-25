@@ -3,28 +3,17 @@ import path from "node:path";
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 
-interface SizeLimitEntry {
-  name: string;
-  path: string | string[];
-  limit: string;
-}
-
-interface PackageJson {
-  scripts: Record<string, string>;
-  devDependencies: Record<string, string>;
-}
-
-function readJson<T>(relativePath: string): T {
-  return JSON.parse(fs.readFileSync(path.join(REPO_ROOT, relativePath), "utf8")) as T;
+function readJson(relativePath) {
+  return JSON.parse(fs.readFileSync(path.join(REPO_ROOT, relativePath), "utf8"));
 }
 
 describe("size-limit configuration", () => {
-  let config: SizeLimitEntry[];
-  let pkg: PackageJson;
+  let config;
+  let pkg;
 
   beforeAll(() => {
-    config = readJson<SizeLimitEntry[]>(".size-limit.json");
-    pkg = readJson<PackageJson>("package.json");
+    config = readJson(".size-limit.json");
+    pkg = readJson("package.json");
   });
 
   it("exists as a valid JSON array", () => {
@@ -33,7 +22,7 @@ describe("size-limit configuration", () => {
   });
 
   it("defines budgets for home, invest, and invoices routes", () => {
-    const names = config.map((entry: SizeLimitEntry) => entry.name);
+    const names = config.map((entry) => entry.name);
     expect(names).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/home/i),
@@ -69,32 +58,32 @@ describe("size-limit configuration", () => {
   });
 
   it("home budget is <= 800 kB", () => {
-    const home = config.find((e: SizeLimitEntry) => /home/i.test(e.name));
+    const home = config.find((e) => /home/i.test(e.name));
     expect(home).toBeDefined();
-    const val = parseFloat(home!.limit);
+    const val = parseFloat(home.limit);
     expect(val).toBeLessThanOrEqual(800);
   });
 
   it("invest budget is <= 800 kB", () => {
-    const invest = config.find((e: SizeLimitEntry) => /invest/i.test(e.name));
+    const invest = config.find((e) => /invest/i.test(e.name));
     expect(invest).toBeDefined();
-    const val = parseFloat(invest!.limit);
+    const val = parseFloat(invest.limit);
     expect(val).toBeLessThanOrEqual(800);
   });
 
   it("invoices budget is <= 800 kB", () => {
-    const invoices = config.find((e: SizeLimitEntry) => /invoices/i.test(e.name));
+    const invoices = config.find((e) => /invoices/i.test(e.name));
     expect(invoices).toBeDefined();
-    const val = parseFloat(invoices!.limit);
+    const val = parseFloat(invoices.limit);
     expect(val).toBeLessThanOrEqual(800);
   });
 });
 
 describe("package.json integration", () => {
-  let pkg: PackageJson;
+  let pkg;
 
   beforeAll(() => {
-    pkg = readJson<PackageJson>("package.json");
+    pkg = readJson("package.json");
   });
 
   it("has a size-limit script", () => {

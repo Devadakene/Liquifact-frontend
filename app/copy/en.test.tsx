@@ -30,7 +30,7 @@ describe("copy dictionary — key presence", () => {
     });
 
     it("has non-empty string values for all keys", () => {
-      const stringKeys: (keyof typeof copy.invest)[] = [
+      const stringKeys = [
         "title",
         "subtext",
         "emptyState",
@@ -55,9 +55,8 @@ describe("copy dictionary — key presence", () => {
         "announceShowing",
       ];
       for (const key of stringKeys) {
-        const value = copy.invest[key];
-        expect(typeof value).toBe("string");
-        expect(String(value).length).toBeGreaterThan(0);
+        expect(typeof copy.invest[key]).toBe("string");
+        expect(copy.invest[key].length).toBeGreaterThan(0);
       }
     });
   });

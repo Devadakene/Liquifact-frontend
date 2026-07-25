@@ -12,11 +12,8 @@ import { copy } from "../app/copy/en";
  * Footer component displays navigation links defined in `copy.footer`.
  * Accepts an optional `links` prop for testing/customization. If omitted,
  * it falls back to the default hard‑coded list.
- *
- * @param {object} [props]
- * @param {FooterLink[]} [props.links] - Optional link list override; defaults to `copy.footer`.
  */
-export default function Footer({ links } = {}) {
+export default function Footer({ links }) {
   /** @type {FooterLink[]} */
   const defaultLinks = [
     {

@@ -152,8 +152,7 @@ describe.skip("InvoiceList – clipboard write on copy", () => {
       fireEvent.click(button);
     });
 
-    const [firstWriteCall] = (navigator.clipboard.writeText as jest.Mock).mock.calls;
-    const written = firstWriteCall![0];
+    const written = (navigator.clipboard.writeText as jest.Mock).mock.calls[0][0];
     expect(written).toBe(FULL_ADDRESS);
     expect(written).not.toContain(invoiceWithAddress.issuer);
     expect(written).not.toContain(invoiceWithAddress.id);
