@@ -8,30 +8,34 @@ import "./globals.css";
 expect.extend(toHaveNoViolations);
 
 const cssSource = fs.readFileSync(path.join(__dirname, "globals.css"), "utf8");
-const extractToken = (name) => {
+const extractToken = (name: string) => {
   const match = new RegExp(`${name}:\\s*(#(?:[0-9a-f]{6}))`, "i").exec(cssSource);
-  return match ? match[1].toLowerCase() : null;
+  return match ? match[1]!.toLowerCase() : null;
 };
 
-function parseHexColor(value) {
+function parseHexColor(value: string): [number, number, number] {
   const normalized = value.trim().toLowerCase();
   const match = normalized.match(/^#([0-9a-f]{6})$/);
   if (!match) {
     throw new Error(`Unsupported color format: ${value}`);
   }
-  const hex = match[1];
-  return [0, 2, 4].map((index) => parseInt(hex.slice(index, index + 2), 16));
+  const hex = match[1]!;
+  return [0, 2, 4].map((index) => parseInt(hex.slice(index, index + 2), 16)) as [
+    number,
+    number,
+    number,
+  ];
 }
 
-function relativeLuminance([r, g, b]) {
-  const transform = (channel) => {
+function relativeLuminance([r, g, b]: [number, number, number]) {
+  const transform = (channel: number) => {
     const value = channel / 255;
     return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
   };
   return 0.2126 * transform(r) + 0.7152 * transform(g) + 0.0722 * transform(b);
 }
 
-function contrastRatio(foreground, background) {
+function contrastRatio(foreground: string, background: string) {
   const fg = relativeLuminance(parseHexColor(foreground));
   const bg = relativeLuminance(parseHexColor(background));
   const lighter = Math.max(fg, bg);

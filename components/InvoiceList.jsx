@@ -198,7 +198,27 @@ export function getMaturityBadgeProps(days) {
   };
 }
 
-export default function InvoiceList({ loadInvoices = loadMockInvoices, optimisticInvoices = [] }) {
+/**
+ * @typedef {Object} InvoiceListItem
+ * @property {string} id
+ * @property {string} issuer
+ * @property {string} amount
+ * @property {string} currency
+ * @property {string} dueDate
+ * @property {string} yield
+ * @property {string} status
+ */
+
+/**
+ * @param {object} [props]
+ * @param {() => Promise<InvoiceListItem[]>} [props.loadInvoices] - Loader for the invoice list.
+ * @param {InvoiceListItem[]} [props.optimisticInvoices] - Locally-added invoices shown ahead of the fetch.
+ */
+export default function InvoiceList({
+  loadInvoices = loadMockInvoices,
+  /** @type {InvoiceListItem[]} */
+  optimisticInvoices = [],
+}) {
   const [invoices, setInvoices] = useState(null);
   const [loadError, setLoadError] = useState("");
 

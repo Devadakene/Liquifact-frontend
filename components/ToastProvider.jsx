@@ -10,6 +10,14 @@ import {
   useState,
 } from "react";
 
+/**
+ * @typedef {object} ToastApi
+ * @property {(message: string, title?: string) => void} success
+ * @property {(message: string, title?: string) => void} error
+ * @property {(message: string, title?: string) => void} info
+ */
+
+/** @type {import('react').Context<ToastApi | null>} */
 const ToastContext = createContext(null);
 export { ToastContext };
 const AUTO_DISMISS_MS = 5000;

@@ -32,7 +32,7 @@ const cssSource = fs.readFileSync(CSS_PATH, "utf8");
 function extractToken(name: string): string {
   const match = new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`, "i").exec(cssSource);
   if (!match) throw new Error(`Token "${name}" not found in globals.css`);
-  return match[1].toLowerCase();
+  return match[1]!.toLowerCase();
 }
 
 /**
@@ -50,7 +50,7 @@ function extractAllColorTokenNames(): string[] {
 function parseHexColor(hex: string): [number, number, number] {
   const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex.trim());
   if (!m) throw new Error(`parseHexColor: unsupported format "${hex}"`);
-  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)];
+  return [parseInt(m[1]!, 16), parseInt(m[2]!, 16), parseInt(m[3]!, 16)];
 }
 
 function linearise(channel: number): number {

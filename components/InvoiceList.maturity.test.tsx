@@ -3,6 +3,7 @@
  * Covers: daysUntilMaturity(), getMaturityBadgeProps(), and InvoiceList rendering.
  */
 import "@testing-library/jest-dom";
+import React from "react";
 import { render, screen, within } from "@testing-library/react";
 import InvoiceList, { getMaturityBadgeProps } from "./InvoiceList";
 import { daysUntilMaturity } from "../app/invest/lib";
@@ -101,51 +102,68 @@ const baseInvoice = {
 
 const REF = new Date("2026-06-26T12:00:00Z");
 
+// Type alias for the future InvoiceList API (not yet implemented)
+type FutureInvoiceListProps = {
+  invoices: Array<{
+    id: string;
+    issuer: string;
+    amount: string;
+    currency: string;
+    dueDate: string;
+    yield: string;
+    status: string;
+  }>;
+  now: Date;
+};
+
 describe.skip("InvoiceList (maturity badges — feature not yet implemented in component)", () => {
+  // Cast InvoiceList to the future API shape for these tests
+  const InvoiceListFuture = InvoiceList as unknown as React.ComponentType<FutureInvoiceListProps>;
+
   it("renders one card per invoice", () => {
     const invoices = [baseInvoice, { ...baseInvoice, id: "inv-002", issuer: "Beta Co" }];
-    render(<InvoiceList invoices={invoices} now={REF} />);
+    render(<InvoiceListFuture invoices={invoices} now={REF} />);
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 
   it("renders the maturity badge for a future invoice", () => {
-    render(<InvoiceList invoices={[baseInvoice]} now={REF} />);
+    render(<InvoiceListFuture invoices={[baseInvoice]} now={REF} />);
     expect(screen.getByLabelText("Matures in 10 days")).toBeInTheDocument();
   });
 
   it("renders 'Matures today' badge when dueDate equals now", () => {
     const inv = { ...baseInvoice, dueDate: "2026-06-26" };
-    render(<InvoiceList invoices={[inv]} now={REF} />);
+    render(<InvoiceListFuture invoices={[inv]} now={REF} />);
     expect(screen.getByLabelText("Matures today")).toBeInTheDocument();
   });
 
   it("renders 'Overdue' badge for past dueDate", () => {
     const inv = { ...baseInvoice, dueDate: "2026-06-16" }; // 10 days ago
-    render(<InvoiceList invoices={[inv]} now={REF} />);
+    render(<InvoiceListFuture invoices={[inv]} now={REF} />);
     expect(screen.getByLabelText("Overdue by 10 days")).toBeInTheDocument();
   });
 
   it("overdue badge text contains the word 'Overdue' (not colour-only)", () => {
     const inv = { ...baseInvoice, dueDate: "2026-06-16" };
-    render(<InvoiceList invoices={[inv]} now={REF} />);
+    render(<InvoiceListFuture invoices={[inv]} now={REF} />);
     const badge = screen.getByLabelText(/overdue/i);
     expect(badge.textContent).toMatch(/overdue/i);
   });
 
   it("badge is a <span> (purely presentational, no interactive role)", () => {
-    render(<InvoiceList invoices={[baseInvoice]} now={REF} />);
+    render(<InvoiceListFuture invoices={[baseInvoice]} now={REF} />);
     const badge = screen.getByLabelText("Matures in 10 days");
     expect(badge.tagName).toBe("SPAN");
   });
 
   it("renders issuer name and currency amount", () => {
-    render(<InvoiceList invoices={[baseInvoice]} now={REF} />);
+    render(<InvoiceListFuture invoices={[baseInvoice]} now={REF} />);
     expect(screen.getByText("Acme Supplies Ltd")).toBeInTheDocument();
     expect(screen.getByText(/USD/)).toBeInTheDocument();
   });
 
   it("each card shows the status badge", () => {
-    render(<InvoiceList invoices={[baseInvoice]} now={REF} />);
+    render(<InvoiceListFuture invoices={[baseInvoice]} now={REF} />);
     expect(screen.getByText("Open")).toBeInTheDocument();
   });
 
@@ -155,26 +173,26 @@ describe.skip("InvoiceList (maturity badges — feature not yet implemented in c
       { ...baseInvoice, id: "inv-b", dueDate: "2026-06-16" }, // -10 days
       { ...baseInvoice, id: "inv-c", dueDate: "2026-06-26" }, // today
     ];
-    render(<InvoiceList invoices={invoices} now={REF} />);
+    render(<InvoiceListFuture invoices={invoices} now={REF} />);
     expect(screen.getByLabelText("Matures in 10 days")).toBeInTheDocument();
     expect(screen.getByLabelText("Overdue by 10 days")).toBeInTheDocument();
     expect(screen.getByLabelText("Matures today")).toBeInTheDocument();
   });
 
   it("renders the dueDate text in each card", () => {
-    render(<InvoiceList invoices={[baseInvoice]} now={REF} />);
+    render(<InvoiceListFuture invoices={[baseInvoice]} now={REF} />);
     expect(screen.getByText(/2026-07-06/)).toBeInTheDocument();
   });
 
   it("renders singular 'day' (not 'days') for 1 day away", () => {
     const inv = { ...baseInvoice, dueDate: "2026-06-27" };
-    render(<InvoiceList invoices={[inv]} now={REF} />);
+    render(<InvoiceListFuture invoices={[inv]} now={REF} />);
     expect(screen.getByLabelText("Matures in 1 day")).toBeInTheDocument();
   });
 
   it("renders singular 'day' (not 'days') for 1 day overdue", () => {
     const inv = { ...baseInvoice, dueDate: "2026-06-25" };
-    render(<InvoiceList invoices={[inv]} now={REF} />);
+    render(<InvoiceListFuture invoices={[inv]} now={REF} />);
     expect(screen.getByLabelText("Overdue by 1 day")).toBeInTheDocument();
   });
 });

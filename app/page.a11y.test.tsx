@@ -73,8 +73,8 @@ describe("Home Page Accessibility", () => {
   it("h1 appears before h2 headings in DOM order", () => {
     render(<Home />);
     const headings = Array.from(document.querySelectorAll("h1, h2"));
-    expect(headings[0].tagName).toBe("H1");
-    expect(headings[1].tagName).toBe("H2");
-    expect(headings[2].tagName).toBe("H2");
+    expect(headings[0]!.tagName).toBe("H1");
+    expect(headings[1]!.tagName).toBe("H2");
+    expect(headings[2]!.tagName).toBe("H2");
   });
 });

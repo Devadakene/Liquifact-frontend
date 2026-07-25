@@ -48,7 +48,8 @@ function getVisibleToasts() {
 function getToastTitles() {
   return getVisibleToasts().map((button) => {
     const card = button.closest("div.pointer-events-auto");
-    return within(card as Element).getByText(/^(Duplicate|One|Two|Three|Four|Hover)$/).textContent;
+    return within(card as HTMLElement).getByText(/^(Duplicate|One|Two|Three|Four|Hover)$/)
+      .textContent;
   });
 }
 

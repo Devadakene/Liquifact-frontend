@@ -38,6 +38,7 @@ Run the checks that match your change before opening a pull request:
 
 ```bash
 npm run lint
+npm run typecheck
 npm test
 npm run build
 ```

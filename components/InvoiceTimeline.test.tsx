@@ -363,7 +363,7 @@ describe("InvoiceTimeline — timestamps", () => {
     });
     // The timestamp <span> should not be rendered for null
     const items = getStageItems();
-    const uploadedItem = items[0];
+    const uploadedItem = items[0]!;
     // Only the stage label span should be present, no extra timestamp span
     const spans = within(uploadedItem).getAllByText(/.+/);
     // The accessible label text comes from aria-label; visible text is just the label
@@ -377,7 +377,7 @@ describe("InvoiceTimeline — timestamps", () => {
     });
     // No timestamp node should appear since the value is empty
     const items = getStageItems();
-    const uploadedItem = items[0];
+    const uploadedItem = items[0]!;
     const timestampSpan = uploadedItem.querySelector(".text-xs.text-slate-500");
     expect(timestampSpan).toBeNull();
   });
@@ -410,7 +410,7 @@ describe("InvoiceTimeline — tone tokens match STATUS_PILL_MAP", () => {
     renderTimeline({ status: INVOICE_STATUSES.FUNDED });
     const items = getStageItems();
     // Uploaded, Verified, Listed are completed for Funded status
-    const uploadedItem = items[0];
+    const uploadedItem = items[0]!;
     // The dot span is the second aria-hidden span (first is the connector line)
     const dots = uploadedItem.querySelectorAll('[aria-hidden="true"]');
     const dotSpan = dots[dots.length >= 2 ? 1 : 0];
@@ -421,7 +421,7 @@ describe("InvoiceTimeline — tone tokens match STATUS_PILL_MAP", () => {
     renderTimeline({ status: INVOICE_STATUSES.OPEN });
     const items = getStageItems();
     // Listed is the current stage for Open
-    const listedItem = items[2]; // index 2 = listed
+    const listedItem = items[2]!; // index 2 = listed
     // The dot span is the second aria-hidden span (first is the connector line)
     const dots = listedItem.querySelectorAll('[aria-hidden="true"]');
     const dotSpan = dots[dots.length >= 2 ? 1 : 0];
@@ -432,7 +432,7 @@ describe("InvoiceTimeline — tone tokens match STATUS_PILL_MAP", () => {
     renderTimeline({ status: INVOICE_STATUSES.OPEN });
     const items = getStageItems();
     // Funded and Settled are pending for Open status
-    const fundedItem = items[3];
+    const fundedItem = items[3]!;
     // The dot span is the second aria-hidden span (first is the connector line)
     const dots = fundedItem.querySelectorAll('[aria-hidden="true"]');
     const dotSpan = dots[dots.length >= 2 ? 1 : 0];

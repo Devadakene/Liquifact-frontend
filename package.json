@@ -10,7 +10,8 @@
     "format:check": "prettier --check .",
     "format": "prettier --write .",
     "test": "jest",
-    "size-limit": "size-limit"
+    "size-limit": "size-limit",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@next/swc-wasm-nodejs": "^16.2.10",

@@ -114,10 +114,10 @@ describe("WalletStatus Button variant + loading — per WALLET_STATE", () => {
    */
   function getWalletButton() {
     const buttons = screen.getAllByRole("button");
-    const actionButton = buttons.find(
-      (btn) => btn.getAttribute("aria-label") !== "Copy wallet address"
-    );
-    return actionButton || buttons[0];
+    const actionButton =
+      buttons.find((btn) => btn.getAttribute("aria-label") !== "Copy wallet address") ?? buttons[0];
+    if (!actionButton) throw new Error("Expected a wallet button to be rendered");
+    return actionButton;
   }
 
   describe("DISCONNECTED", () => {

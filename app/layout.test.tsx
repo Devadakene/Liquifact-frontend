@@ -41,7 +41,7 @@ jest.mock("../components/ShortcutHelpDialog", () => ({
 }));
 
 jest.mock("../components/WalletProvider", () => ({
-  WalletProvider({ children }) {
+  WalletProvider({ children }: { children: React.ReactNode }) {
     const React = require("react");
     return React.createElement(React.Fragment, null, children);
   },

@@ -30,7 +30,7 @@ import {
 /**
  * Creates a mock Response object with the given status and optional body.
  */
-function mockResponse(status, body = {}) {
+function mockResponse(status: number, body: Record<string, unknown> = {}) {
   return {
     ok: status >= 200 && status < 300,
     status,
@@ -45,7 +45,7 @@ function mockResponse(status, body = {}) {
 // ── Tests ──────────────────────────────────────────────────────────────────
 
 describe("fetchWithRetry", () => {
-  let mockFetch;
+  let mockFetch: jest.Mock;
 
   beforeEach(() => {
     mockFetch = jest.fn();
@@ -54,7 +54,7 @@ describe("fetchWithRetry", () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
-    delete global.fetch;
+    (global as Record<string, unknown>).fetch = undefined;
   });
 
   describe("basic success path", () => {
@@ -103,7 +103,7 @@ describe("fetchWithRetry", () => {
       expect(result.ok).toBe(true);
       expect(mockFetch).toHaveBeenCalledTimes(2);
 
-      global.Math.random.mockRestore();
+      (jest.spyOn(global.Math, "random") as jest.SpyInstance).mockRestore();
     });
 
     it("exhausts retries and returns the last 5xx response", async () => {
@@ -119,7 +119,7 @@ describe("fetchWithRetry", () => {
       expect(result.status).toBe(503);
       expect(mockFetch).toHaveBeenCalledTimes(3);
 
-      global.Math.random.mockRestore();
+      (jest.spyOn(global.Math, "random") as jest.SpyInstance).mockRestore();
     });
   });
 
@@ -136,7 +136,7 @@ describe("fetchWithRetry", () => {
       expect(result.ok).toBe(true);
       expect(mockFetch).toHaveBeenCalledTimes(2);
 
-      global.Math.random.mockRestore();
+      (jest.spyOn(global.Math, "random") as jest.SpyInstance).mockRestore();
     });
 
     it("re-throws the last error after exhausting retries", async () => {
@@ -152,7 +152,7 @@ describe("fetchWithRetry", () => {
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
 
-      global.Math.random.mockRestore();
+      (jest.spyOn(global.Math, "random") as jest.SpyInstance).mockRestore();
     });
   });
 
@@ -216,7 +216,7 @@ describe("fetchWithRetry", () => {
       await expect(promise).rejects.toThrow(DOMException);
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
-      global.Math.random.mockRestore();
+      (jest.spyOn(global.Math, "random") as jest.SpyInstance).mockRestore();
     });
 
     it("does not retry AbortError from in-flight fetch", async () => {
@@ -301,7 +301,7 @@ describe("fetchWithRetry", () => {
       expect(result.ok).toBe(true);
       expect(mockFetch).toHaveBeenCalledTimes(2);
 
-      global.Math.random.mockRestore();
+      (jest.spyOn(global.Math, "random") as jest.SpyInstance).mockRestore();
     });
 
     it("does NOT retry PATCH by default", async () => {
@@ -335,7 +335,7 @@ describe("fetchWithRetry", () => {
       expect(result.ok).toBe(true);
       expect(mockFetch).toHaveBeenCalledTimes(2);
 
-      global.Math.random.mockRestore();
+      (jest.spyOn(global.Math, "random") as jest.SpyInstance).mockRestore();
     });
 
     it("does not call shouldRetry for successful responses", async () => {
@@ -358,7 +358,7 @@ describe("defaultDelay", () => {
     const result = defaultDelay(2, 1000);
     expect(result).toBe(2000); // 0.5 * (1000 * 2^2) = 0.5 * 4000 = 2000
 
-    global.Math.random.mockRestore();
+    (jest.spyOn(global.Math, "random") as jest.SpyInstance).mockRestore();
   });
 });
 
@@ -368,20 +368,20 @@ describe("defaultShouldRetry", () => {
   });
 
   it("returns true for 5xx responses", () => {
-    expect(defaultShouldRetry(null, { status: 500 })).toBe(true);
-    expect(defaultShouldRetry(null, { status: 502 })).toBe(true);
-    expect(defaultShouldRetry(null, { status: 503 })).toBe(true);
+    expect(defaultShouldRetry(null, { status: 500 } as unknown as Response)).toBe(true);
+    expect(defaultShouldRetry(null, { status: 502 } as unknown as Response)).toBe(true);
+    expect(defaultShouldRetry(null, { status: 503 } as unknown as Response)).toBe(true);
   });
 
   it("returns false for 4xx responses", () => {
-    expect(defaultShouldRetry(null, { status: 400 })).toBe(false);
-    expect(defaultShouldRetry(null, { status: 404 })).toBe(false);
-    expect(defaultShouldRetry(null, { status: 429 })).toBe(false);
+    expect(defaultShouldRetry(null, { status: 400 } as unknown as Response)).toBe(false);
+    expect(defaultShouldRetry(null, { status: 404 } as unknown as Response)).toBe(false);
+    expect(defaultShouldRetry(null, { status: 429 } as unknown as Response)).toBe(false);
   });
 
   it("returns false for successful responses (should not be called but defensive)", () => {
-    expect(defaultShouldRetry(null, { status: 200 })).toBe(false);
-    expect(defaultShouldRetry(null, { status: 201 })).toBe(false);
+    expect(defaultShouldRetry(null, { status: 200 } as unknown as Response)).toBe(false);
+    expect(defaultShouldRetry(null, { status: 201 } as unknown as Response)).toBe(false);
   });
 });
 
@@ -419,7 +419,7 @@ describe("sleep", () => {
   });
 
   it("resolves after the specified duration", async () => {
-    const promise = sleep(1000);
+    const promise = sleep(1000, null);
 
     jest.advanceTimersByTime(1000);
 

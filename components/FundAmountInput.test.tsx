@@ -11,7 +11,13 @@ expect.extend(toHaveNoViolations);
 // Button uses Spinner which is already imported; mock the whole Button to
 // keep tests free from complex style assertions.
 jest.mock("./Button", () => {
-  function MockButton({ children, disabled, loading, className, ...rest }) {
+  function MockButton({
+    children,
+    disabled,
+    loading,
+    className,
+    ...rest
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
     return (
       <button disabled={disabled || loading} {...rest}>
         {children}
