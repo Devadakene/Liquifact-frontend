@@ -34,21 +34,15 @@ const VARIANT_STYLES = {
     icon: "ℹ️",
     label: "Info",
   },
-  loading: {
-    base: "border-slate-500/30 bg-slate-500/10 text-slate-100",
-    accent: "text-slate-300",
-    icon: null,
-    label: "Loading",
-  },
 };
 
 function getToastKey({ variant = "info", title, message }) {
   return `${variant}::${title || ""}::${message || ""}`;
 }
 
-function createToast({ variant = "info", title, message, id }) {
+function createToast({ variant = "info", title, message }) {
   return {
-    id: id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     variant,
     title: title || VARIANT_STYLES[variant]?.label || "Notice",
     message,
@@ -115,7 +109,7 @@ export function ToastProvider({ children }) {
   );
 
   const addToast = useCallback(
-    ({ variant, title, message, id }) => {
+    ({ variant, title, message }) => {
       // Snapshot the currently focused element so document-level Escape can
       // restore focus even when the toast never receives focus directly.
       const activeEl = document.activeElement;
@@ -123,27 +117,21 @@ export function ToastProvider({ children }) {
         addTimeFocusRef.current = activeEl;
       }
 
-      const nextToast = createToast({ variant, title, message, id });
+      const nextToast = createToast({ variant, title, message });
       const key = nextToast.key;
       let timerAction = null;
 
       setToasts((current) => {
-        let existingIndex = -1;
-        if (id) {
-          existingIndex = current.findIndex((toast) => toast.id === id);
-        } else {
-          existingIndex = current.findIndex((toast) => toast.key === key);
-        }
+        const existingIndex = current.findIndex((toast) => toast.key === key);
 
         if (existingIndex !== -1) {
           const existingToast = current[existingIndex];
-          // Preserve the existing toast's ID to prevent DOM remounting and layout shifts
-          nextToast.id = existingToast.id;
-          timerAction = { type: "refresh", id: nextToast.id };
-          // Replace the toast with the new one (if id matches) or bump it if key matches.
-          if (existingIndex === 0) return [nextToast, ...current.slice(1)];
+          timerAction = { type: "refresh", id: existingToast.id };
+          // Bump the existing toast to the front (newest position) so
+          // re-triggered messages appear at the top of the stack.
+          if (existingIndex === 0) return current;
           return [
-            nextToast,
+            existingToast,
             ...current.slice(0, existingIndex),
             ...current.slice(existingIndex + 1),
           ];
@@ -165,19 +153,18 @@ export function ToastProvider({ children }) {
 
       if (timerAction?.type === "refresh") {
         scheduleToastTimer(timerAction.id);
-        return nextToast.id;
+        return;
       }
 
       if (timerAction?.type === "replace") {
         clearToastTimer(timerAction.removedId);
         scheduleToastTimer(timerAction.id);
-        return nextToast.id;
+        return;
       }
 
       if (timerAction?.type === "add") {
         scheduleToastTimer(timerAction.id);
       }
-      return nextToast.id;
     },
     [clearToastTimer, scheduleToastTimer]
   );
@@ -254,10 +241,9 @@ export function ToastProvider({ children }) {
 
   const value = useMemo(
     () => ({
-      success: (message, title, options) => addToast({ variant: "success", title, message, ...options }),
-      error: (message, title, options) => addToast({ variant: "error", title, message, ...options }),
-      info: (message, title, options) => addToast({ variant: "info", title, message, ...options }),
-      loading: (message, title, options) => addToast({ variant: "loading", title, message, ...options }),
+      success: (message, title) => addToast({ variant: "success", title, message }),
+      error: (message, title) => addToast({ variant: "error", title, message }),
+      info: (message, title) => addToast({ variant: "info", title, message }),
     }),
     [addToast]
   );
@@ -311,28 +297,14 @@ export function ToastProvider({ children }) {
                   }
                 }}
                 className={`pointer-events-auto overflow-hidden rounded-3xl border p-4 shadow-2xl shadow-slate-950/30 transition duration-200 ${variant.base}`}
-                aria-busy={toast.variant === "loading" ? "true" : undefined}
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 text-xl" aria-hidden="true">
-                    {toast.variant === "loading" ? (
-                      <div className="h-6 w-6 animate-pulse rounded-full bg-slate-700/50" />
-                    ) : (
-                      variant.icon
-                    )}
+                    {variant.icon}
                   </div>
                   <div className="min-w-0 flex-1">
-                    {toast.variant === "loading" ? (
-                      <div aria-hidden="true" className="space-y-2 py-1">
-                        <div className="h-4 w-1/3 animate-pulse rounded bg-slate-700/50" />
-                        <div className="h-3 w-3/4 animate-pulse rounded bg-slate-700/50" />
-                      </div>
-                    ) : (
-                      <>
-                        <p className="text-sm font-semibold text-slate-100">{toast.title}</p>
-                        <p className="mt-1 text-sm leading-6 text-slate-300">{toast.message}</p>
-                      </>
-                    )}
+                    <p className="text-sm font-semibold text-slate-100">{toast.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-300">{toast.message}</p>
                   </div>
                   <button
                     type="button"

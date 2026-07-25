@@ -4,7 +4,7 @@ import { copy } from "../copy/en";
 import NavMenu from "../../components/NavMenu";
 import UploadZone from "../../components/UploadZone";
 import InvoiceList from "../../components/InvoiceList";
-import FormsErrorBoundary from "../../components/FormsErrorBoundary";
+
 export default function InvoicesPage() {
   const [optimisticInvoices, setOptimisticInvoices] = useState([]);
 
@@ -28,9 +28,7 @@ export default function InvoicesPage() {
 
         <div className="grid gap-10 lg:grid-cols-3">
           <div className="lg:col-span-1">
-            <FormsErrorBoundary>
-              <UploadZone onUploadSuccess={handleUploadSuccess} />
-            </FormsErrorBoundary>
+            <UploadZone onUploadSuccess={handleUploadSuccess} />
           </div>
           <div className="lg:col-span-2">
             <InvoiceList optimisticInvoices={optimisticInvoices} />

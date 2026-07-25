@@ -4,7 +4,6 @@ import Footer from "../components/Footer";
 import { ToastProvider } from "../components/ToastProvider";
 import { WalletProvider } from "../components/WalletProvider";
 import ThemeToggle, { THEME_STORAGE_KEY, THEMES } from "../components/ThemeToggle";
-import ThemeErrorBoundary from "../components/ThemeErrorBoundary";
 import ShortcutHelpDialog from "../components/ShortcutHelpDialog";
 import { copy } from "./copy/en";
 
@@ -89,9 +88,7 @@ export default function RootLayout({ children }) {
         </ToastProvider>
         {/* Theme toggle — fixed to top-right, above all other content */}
         <div className="fixed top-3 right-16 z-50 md:right-20">
-          <ThemeErrorBoundary>
-            <ThemeToggle />
-          </ThemeErrorBoundary>
+          <ThemeToggle />
         </div>
         {/* Shortcut help dialog — listens for `?` keystrokes to surface every
             registered keyboard shortcut. Mounted here so the gesture works
