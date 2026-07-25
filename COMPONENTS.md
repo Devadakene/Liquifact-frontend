@@ -531,44 +531,82 @@ function SaveButton() {
 
 ## UploadZone
 
-Drag-and-drop (or click-to-browse) PDF invoice upload form. Validates the file client-side, then POSTs it to `POST /invoices` on the configured API.
+Drag-and-drop (or click-to-browse) PDF invoice upload form with comprehensive client-side validation. Validates MIME-type, file size, magic bytes, and filename safety, then POSTs to `POST /invoices` on the configured API.
 
 **File:** `components/UploadZone.jsx`
 
+> **Detailed contract:** For the full component contract (props, states, validation pipeline, accessibility), see [docs/upload-component.md](docs/upload-component.md).
+
 ### Props
 
-None — API endpoint is read from `NEXT_PUBLIC_API_URL` (falls back to `http://localhost:3001`).
+| Prop              | Type                 | Default     | Description                                                                                                                                                                                                                     |
+| ----------------- | -------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onUploadSuccess` | `function`           | `undefined` | Callback triggered when the invoice upload and tokenization completes successfully. Receives an invoice metadata object: `{ id, issuer, amount, currency, dueDate, yield, status }`. Omit if the parent does not need the result. |
+| `progress`        | `number`             | `undefined` | Optional upload progress percentage (`0` to `100`). When provided as a number during the `uploading` state, a determinate progress bar (`role="progressbar"`) is rendered with `aria-valuenow` set to the rounded value. When `undefined`, an indeterminate spinner is shown instead. Smooth transitions are disabled when `prefers-reduced-motion` is active. |
+
+> **Note:** The API endpoint is read from `NEXT_PUBLIC_API_URL` via `lib/config/env.js` (falls back to `http://localhost:3001`). No prop configuration is needed for the endpoint.
 
 ### Exported constants
 
-| Export             | Description                                                     |
-| ------------------ | --------------------------------------------------------------- |
-| `MAX_UPLOAD_BYTES` | Numeric constant limiting file size to 10 MB (in bytes)         |
-| `FILE_CONSTRAINTS` | Object with `accept`, `mimeType`, `maxSizeMb`, `maxSizeBytes`   |
-| `Spinner`          | Small inline SVG spinner used internally; re-exported for reuse |
+| Export             | Description                                                                                                                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FILE_CONSTRAINTS` | Object with `accept` (`".pdf"`), `mimeType` (`"application/pdf"`), `maxSizeMb` (`10`), `maxSizeBytes` (`10485760`). Enforced on file selection, drop, and before `fetch`.                                |
+| `Spinner`          | Small inline SVG spinner used internally during upload/tokenization states; re-exported for reuse. Renders with `role="img"` and a screen-reader-accessible `aria-label`.                                |
+
+> `MAX_UPLOAD_BYTES` is the module-level constant (`10 * 1024 * 1024`) backing `FILE_CONSTRAINTS.maxSizeBytes`. Prefer `FILE_CONSTRAINTS` in consumer code.
 
 ### Upload states
 
-| State        | Description                                             |
-| ------------ | ------------------------------------------------------- |
-| `idle`       | Waiting for a file or ready to submit                   |
-| `uploading`  | `fetch` in progress; submit button disabled             |
-| `tokenizing` | Upload succeeded; waiting for server tokenization delay |
-| `success`    | Invoice queued; informational status shown              |
+| State        | Visual feedback                                                                                      | Submit button                                          | Description                                                                             |
+| ------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| `idle`       | Drop zone with constraint badges; file info shown after valid selection                              | "Upload & Tokenize Invoice" — enabled if file is valid | Waiting for a file or ready to submit. Also the state after a successful upload resets. |
+| `uploading`  | Spinner (or determinate progress bar when `progress` prop supplied) + status text                    | Disabled; label reads "Uploading invoice..."           | `fetch` in progress; double-submit is guarded.                                          |
+| `tokenizing` | Spinner + status text ("Invoice uploaded. Pending tokenization...")                                   | Disabled; label reads "Tokenizing invoice..."          | Upload succeeded; waiting for server tokenization delay before marking success.         |
+| `success`    | Green status banner with rocket emoji ("Invoice queued for tokenization...")                          | Enabled; label returns to "Upload & Tokenize Invoice"  | Invoice queued; `onUploadSuccess` callback has been invoked.                            |
+| error (validation or network) | Red `role="alert"` banner below drop zone; submit button disabled                                     | Disabled (no valid file)                               | Validation or network/server failures. The `status` variable is reset to `idle`, but an error alert is shown until a new valid file is selected. |
 
-### Validation rules
+### Validation pipeline
 
-- **Type:** only `application/pdf` accepted; any other MIME type is rejected.
-- **Size:** file must be ≤ 10 MB (`MAX_UPLOAD_BYTES`). Validation is checked immediately upon file selection via `FILE_CONSTRAINTS`, and additionally enforced before the network `fetch` is triggered to ensure safety.
+Validation runs on every file selection (click-to-browse **and** drag-and-drop) in this order:
+
+1. **Null check** — rejects if no file is present.
+2. **MIME-type check** — only `application/pdf` is accepted; any other type is rejected with a descriptive error.
+3. **Size check** — file must be ≤ 10 MB (`FILE_CONSTRAINTS.maxSizeBytes`). Oversized files are rejected with the actual size shown.
+4. **Zero-byte check** — empty files (0 bytes) are rejected.
+5. **Async PDF validation** (`validatePdfFile`) — verifies magic bytes (`%PDF-`), file extension (`.pdf` case-insensitive), and content–extension consistency. Mismatches clear the file selection and show a specific error.
+
+All validation is performed client-side using `lib/validation/pdf.js`. Validation never executes or trusts file content beyond byte inspection.
+
+After validation passes, filename sanitization is applied for safe display and callback data:
+
+- HTML special characters in filenames are escaped (XSS prevention).
+- Displayed filenames are truncated to 50 characters to prevent layout abuse.
+- The sanitized filename is passed to `onUploadSuccess` as both `issuer` and part of the generated `id`.
+
+### Progress bar behaviour
+
+When the `progress` prop is a number between `0` and `100` during the `uploading` state:
+
+- A `<div role="progressbar">` is rendered with `aria-valuemin="0"`, `aria-valuemax="100"`, and `aria-valuenow` set to `Math.round(progress)`.
+- The visual bar width transitions smoothly (`transition-all duration-300`), but the transition is disabled under `prefers-reduced-motion: reduce`.
+- The percentage is displayed as text (e.g. "46%") next to the progress bar.
+
+When `progress` is `undefined` (or not a number), an indeterminate `<Spinner />` is shown instead — no progress bar element is rendered.
 
 ### Accessibility
 
 - Drop zone renders as `role="button"` with `tabIndex={0}`; activates on `Enter` and `Space`.
-- Errors use `role="alert"` with `aria-live="assertive"`.
-- Progress messages use `role="status"` with `aria-live="polite"`.
-- Upload button carries `aria-disabled` in addition to the native `disabled` attribute.
+- Other keys (Tab, Escape) do not trigger the file dialog.
+- Errors use `role="alert"` with `aria-live="assertive"` for immediate screen-reader announcement.
+- Upload/tokenizing/success statuses use `role="status"` with `aria-live="polite"`.
+- Submit button carries `aria-disabled` in addition to the native `disabled` attribute.
+- The hidden file input has an `aria-label` and is linked via a `<label>` with `className="sr-only"`.
+- File constraint notice uses `role="note"` with a descriptive `aria-label`.
+- Passes `jest-axe` accessibility checks in idle, file-selected, and error states.
 
-### Example
+### Usage examples
+
+**Basic — drop-in upload zone on the invoices page:**
 
 ```jsx
 import UploadZone from "@/components/UploadZone";
@@ -582,6 +620,51 @@ export default function InvoicePage() {
   );
 }
 ```
+
+**With onUploadSuccess — appending an optimistic invoice after upload:**
+
+```jsx
+import { useState } from "react";
+import UploadZone from "@/components/UploadZone";
+
+function InvoicePage() {
+  const [invoices, setInvoices] = useState([]);
+
+  const handleUploadSuccess = (newInvoice) => {
+    setInvoices((prev) => [newInvoice, ...prev]);
+  };
+
+  return (
+    <>
+      <UploadZone onUploadSuccess={handleUploadSuccess} />
+      {/* InvoiceList renders existing + optimistic invoices */}
+    </>
+  );
+}
+```
+
+**With determinate progress bar — passing upload progress from an XHR or fetch tracker:**
+
+```jsx
+import { useState } from "react";
+import UploadZone from "@/components/UploadZone";
+
+function InvoicePage() {
+  const [uploadProgress, setUploadProgress] = useState(undefined);
+
+  return (
+    <UploadZone
+      progress={uploadProgress}
+      onUploadSuccess={(invoice) => {
+        setUploadProgress(undefined); // reset progress on success
+        console.log("Uploaded:", invoice);
+      }}
+    />
+  );
+}
+```
+
+**Note:** The `progress` prop is a controlled input — the parent is responsible for tracking and resetting it. `UploadZone` only reads it; it does not manage progress internally.
 
 ---
 
